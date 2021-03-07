@@ -45,7 +45,7 @@ def display_full_assembly(assembly):
     print(program)
 
 
-def reduce_labels(asm):
+def remove_unused_labels(asm):
     # goes through the code and checks which relative labels are
     # in use, then adds a "show_label" key to each address that
     # is a branching destination
@@ -108,7 +108,7 @@ def bytes_to_asm(bytes, startaddr, opcodes):
     asm = []
     pc = 0
     end = len(bytes)
-    label_prefix = ".l"
+    label_prefix = "l"
 
     while pc < end:
         byte = bytes[pc]
@@ -153,13 +153,19 @@ def bytes_to_asm(bytes, startaddr, opcodes):
             pc += 1
             high_byte = bytes[pc]
 
+            # replace with new word
             opcode = opcode.replace("hh", number_to_hex(high_byte))
             opcode = opcode.replace("ll", number_to_hex(low_byte))
 
+            # is the memory address within our own code?
+            # then we should replace it with a label to that address
             absolute_address = (high_byte << 8) + low_byte
             if (absolute_address >= startaddr) & (absolute_address <= startaddr+end):
                 opcode = opcode.replace("$", label_prefix)
+                is_relative = True
+                address = hex((high_byte << 8) + low_byte)[2:]
 
+            # store the bytes - we might need them later
             byte_sequence.append(low_byte)
             byte_sequence.append(high_byte)
 
@@ -172,11 +178,13 @@ def bytes_to_asm(bytes, startaddr, opcodes):
             "i": opcode,
         }
 
+        # all relative/label data should get a new key so we can identify them
+        # we need this when we cleanup unneeded labels
         if is_relative:
             line["rel_branch"] = label_prefix+address
         asm.append(line)
 
-    asm = reduce_labels(asm)
+    asm = remove_unused_labels(asm)
     return asm
 
 
