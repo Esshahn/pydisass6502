@@ -2,22 +2,19 @@
 
 * = $1000
 
-.l1000
-           nop
-           nop
-           jmp .l1000
-           nop
-           nop
-           bne .l1000
-           nop
-           bcc .l101b
-           nop
-           nop
-           jmp .l101b
-           lda $d020
-           sta $d021
-           sta .l101b
-           nop
+l1000
+           ldy #$00
 
-.l101b
-           rts
+l1002
+           sty $d020
+           iny
+           cpy #$08
+           bne l1002
+           inc $d021
+           jmp l1000
+
+
+
+
+
+           
