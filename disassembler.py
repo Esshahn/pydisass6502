@@ -151,8 +151,14 @@ def bytes_to_asm(bytes, startaddr, opcodes):
             low_byte = bytes[pc]
             pc += 1
             high_byte = bytes[pc]
+
             opcode = opcode.replace("hh", number_to_hex(high_byte))
             opcode = opcode.replace("ll", number_to_hex(low_byte))
+
+            absolute_address = (high_byte << 8) + low_byte
+            if (absolute_address >= startaddr) & (absolute_address <= startaddr+end):
+                opcode = opcode.replace("$", label_prefix)
+
             byte_sequence.append(low_byte)
             byte_sequence.append(high_byte)
 
