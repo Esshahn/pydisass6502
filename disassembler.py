@@ -56,7 +56,6 @@ def reduce_labels(asm):
     for line in asm:
         if "rel_branch" in line:
             labels_used.append(line["rel_branch"])
-    print(labels_used)
 
     # step 2: add key to each line to show the label if it was actually used
     length = len(asm)
@@ -73,7 +72,9 @@ def reduce_labels(asm):
 # formats the assembly code so it can be saved as a program later
 def create_program(assembly):
 
-    program = ""
+    program = "; converted with pydisass6502 by awsm of mayday!"
+    program = program + "\n\n* = $" + assembly[0]["a"]
+
     for command in assembly:
         # put address, bytes and instruction together in one line
         if command["show_label"]:
@@ -82,7 +83,7 @@ def create_program(assembly):
             label = ""
 
         program = program + "\n" + \
-            label + "    " + \
+            label + "           " + \
             command["i"]
     return(program)
 

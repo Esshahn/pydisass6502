@@ -15,10 +15,3 @@ program = create_program(assembly)
 
 # save as file
 write_asm_file("output.asm", program)
-
-
-print("\n")
-num = 255
-num2 = 32
-shifted = hex((num << 8) + num2)[2:]
-print(shifted)
