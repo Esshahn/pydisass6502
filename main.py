@@ -2,7 +2,7 @@ from disassembler import *
 
 
 # load prg
-bytes = load_file("all-instructions.prg")
+bytes = load_file("s3.prg")
 
 # turn bytes into asm code
 startaddr = 4096
