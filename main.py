@@ -2,10 +2,10 @@ from disassembler import *
 
 
 # load prg
-bytes = load_file("test.prg")
+bytes = load_file("s3.prg")
 
 # turn bytes into asm code
-startaddr = 4096
+startaddr = 0x801
 assembly = bytes_to_asm(bytes, startaddr, opcodes)
 
 # convert it into a readable format

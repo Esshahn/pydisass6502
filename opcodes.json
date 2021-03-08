@@ -1,883 +1,883 @@
 
 {
   "00": {
-    "o": "brk"
+    "ins": "brk"
   },
   "01": {
-    "o": "ora ($hh,x)"
+    "ins": "ora ($hh,x)"
   },
   "02": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "03": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "04": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "05": {
-    "o": "ora $hh"
+    "ins": "ora $hh"
   },
   "06": {
-    "o": "asl $hh"
+    "ins": "asl $hh"
   },
   "07": {
-    "o": "hh"
+    "ins": "hh"
   },
   "08": {
-    "o": "php"
+    "ins": "php"
   },
   "09": {
-    "o": "ora #$hh"
+    "ins": "ora #$hh"
   },
   "0a": {
-    "o": "asl"
+    "ins": "asl"
   },
   "0b": {
-    "o": "anc #$hh",
-    "x": 1
+    "ins": "anc #$hh",
+    "ill": 1
   },
   "0c": {
-    "o": "nop $hhll",
-    "x": 1
+    "ins": "nop $hhll",
+    "ill": 1
   },
   "0d":{
-    "o": "ora $hhll"
+    "ins": "ora $hhll"
   },
   "0e":{
-    "o": "asl $hhll"
+    "ins": "asl $hhll"
   },
   "0f": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "10": {
-    "o": "bpl $hh",
-    "r": 1
+    "ins": "bpl $hh",
+    "rel": 1
   },
   "11":{
-    "o": "ora ($hh),y"
+    "ins": "ora ($hh),y"
   },
   "12": {
-    "o": "jam",
-    "x": 1
+    "ins": "jam",
+    "ill": 1
   },
   "13": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "14": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "15": {
-    "o": "ora $hh,x"
+    "ins": "ora $hh,x"
   },
   "16": {
-    "o": "asl $hh,x"
+    "ins": "asl $hh,x"
   },
   "17": {
-    "o": "slo $hh,x",
-    "x": 1
+    "ins": "slo $hh,x",
+    "ill": 1
   },
   "18": {
-    "o": "clc"
+    "ins": "clc"
   },
   "19":{
-    "o": "ora $hhll,y"
+    "ins": "ora $hhll,y"
   },
   "1a": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "1b": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "1c": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "1d":{
-    "o": "ora $hhll,x"
+    "ins": "ora $hhll,x"
   },
   "1e":{
-    "o": "asl $hhll,x"
+    "ins": "asl $hhll,x"
   },
   "1f": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "20":{
-    "o": "jsr $hhll"
+    "ins": "jsr $hhll"
   },
   "21": {
-    "o": "and ($hh,x)"
+    "ins": "and ($hh,x)"
   },
   "22": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "23": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "24":{
-    "o": "bit $hh"
+    "ins": "bit $hh"
   },
   "25": {
-    "o": "and $hh"
+    "ins": "and $hh"
   },
   "26": {
-    "o": "rol $hh"
+    "ins": "rol $hh"
   },
   "27": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "28": {
-    "o": "plp"
+    "ins": "plp"
   },
   "29":{
-    "o": "and #$hh"
+    "ins": "and #$hh"
   },
   "2a": {
-    "o": "rol"
+    "ins": "rol"
   },
   "2b": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "2c": {
-    "o": "bit $hhll"
+    "ins": "bit $hhll"
   },
   "2d": {
-    "o": "and $hhll"
+    "ins": "and $hhll"
   },
   "2e": {
-    "o": "rol $hhll"
+    "ins": "rol $hhll"
   },
   "2f": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "30": {
-    "o": "bmi $hh",
-    "r": 1
+    "ins": "bmi $hh",
+    "rel": 1
   },
   "31":{
-    "o": "and ($hh),y"
+    "ins": "and ($hh),y"
   },
   "32": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "33": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "34": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "35": {
-    "o": "and $hh,x"
+    "ins": "and $hh,x"
   },
   "36": {
-    "o": "rol $hh,x"
+    "ins": "rol $hh,x"
   },
   "37": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "38": {
-    "o": "sec"
+    "ins": "sec"
   },
   "39": {
-    "o": "and $hhll,y"
+    "ins": "and $hhll,y"
   },
   "3a": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "3b": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "3c": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "3d":{
-    "o": "and $hhll,x"
+    "ins": "and $hhll,x"
   },
   "3e":{
-    "o": "rol $hhll,x"
+    "ins": "rol $hhll,x"
   },
   "3f": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "40": {
-    "o": "rti"
+    "ins": "rti"
   },
   "41": {
-    "o": "eor ($hh,x)"
+    "ins": "eor ($hh,x)"
   },
   "42": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "43": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "44": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "45": {
-    "o": "eor $hh"
+    "ins": "eor $hh"
   },
   "46": {
-    "o": "lsr $hh"
+    "ins": "lsr $hh"
   },
   "47": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "48": {
-    "o": "pha"
+    "ins": "pha"
   },
   "49":{
-    "o": "eor #$hh"
+    "ins": "eor #$hh"
   },
   "4a": {
-    "o": "lsr"
+    "ins": "lsr"
   },
   "4b": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "4c": {
-    "o": "jmp $hhll"
+    "ins": "jmp $hhll"
   },
   "4d": {
-    "o": "eor $hhll"
+    "ins": "eor $hhll"
   },
   "4e": {
-    "o": "lsr $hhll"
+    "ins": "lsr $hhll"
   },
   "4f": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "50": {
-    "o": "bvc $hh",
-    "r": 1
+    "ins": "bvc $hh",
+    "rel": 1
   },
   "51":{
-    "o": "eor ($hh),y"
+    "ins": "eor ($hh),y"
   },
   "52": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "53": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "54": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "55": {
-    "o": "eor $hh,x"
+    "ins": "eor $hh,x"
   },
   "56": {
-    "o": "lsr $hh,x"
+    "ins": "lsr $hh,x"
   },
   "57": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "58": {
-    "o": "cli"
+    "ins": "cli"
   },
   "59":{
-    "o": "eor $hhll,y"
+    "ins": "eor $hhll,y"
   },
   "5a": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "5b": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "5c": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "5d":{
-    "o": "eor $hhll,x"
+    "ins": "eor $hhll,x"
   },
   "5e":{
-    "o": "lsr $hhll,x"
+    "ins": "lsr $hhll,x"
   },
   "5f": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "60": {
-    "o": "rts"
+    "ins": "rts"
   },
   "61": {
-    "o": "adc ($hh,x)"
+    "ins": "adc ($hh,x)"
   },
   "62": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "63": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "64": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "65":{
-    "o": "adc $hh"
+    "ins": "adc $hh"
   },
   "66": {
-    "o": "ror $hh"
+    "ins": "ror $hh"
   },
   "67": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "68": {
-    "o": "pla"
+    "ins": "pla"
   },
   "69":{
-    "o": "adc #$hh"
+    "ins": "adc #$hh"
   },
   "6a": {
-    "o": "ror"
+    "ins": "ror"
   },
   "6b": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "6c": {
-    "o": "jmp ($hhll)"
+    "ins": "jmp ($hhll)"
   },
   "6d": {
-    "o": "adc $hhll"
+    "ins": "adc $hhll"
   },
   "6e": {
-    "o": "ror $hhll"
+    "ins": "ror $hhll"
   },
   "6f": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "70": {
-    "o": "bvs $hh",
-    "r": 1
+    "ins": "bvs $hh",
+    "rel": 1
   },
   "71":{
-    "o": "adc ($hh),y"
+    "ins": "adc ($hh),y"
   },
   "72": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "73": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "74": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "75": {
-    "o": "adc $hh,x"
+    "ins": "adc $hh,x"
   },
   "76": {
-    "o": "ror $hh,x"
+    "ins": "ror $hh,x"
   },
   "77": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "78": {
-    "o": "sei"
+    "ins": "sei"
   },
   "79":{
-    "o": "adc $hhll,y"
+    "ins": "adc $hhll,y"
   },
   "7a": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "7b": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "7c": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "7d":{
-    "o": "adc $hhll,x"
+    "ins": "adc $hhll,x"
   },
   "7e":{
-    "o": "ror $hhll,x"
+    "ins": "ror $hhll,x"
   },
   "7f": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "80": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "81": {
-    "o": "sta ($hh,x)"
+    "ins": "sta ($hh,x)"
   },
   "82": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "83": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "84": {
-    "o": "sty $hh"
+    "ins": "sty $hh"
   },
   "85": {
-    "o": "sta $hh"
+    "ins": "sta $hh"
   },
   "86":{
-    "o": "stx $hh"
+    "ins": "stx $hh"
   },
   "87": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "88": {
-    "o": "dey"
+    "ins": "dey"
   },
   "89": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "8a": {
-    "o": "txa"
+    "ins": "txa"
   },
   "8b": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "8c":{
-    "o": "sty $hhll"
+    "ins": "sty $hhll"
   },
   "8d": {
-    "o": "sta $hhll"
+    "ins": "sta $hhll"
   },
   "8e":{
-    "o": "stx $hhll"
+    "ins": "stx $hhll"
   },
   "8f": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "90": {
-    "o": "bcc $hh",
-    "r": 1
+    "ins": "bcc $hh",
+    "rel": 1
   },
   "91":{
-    "o": "sta ($hh),y"
+    "ins": "sta ($hh),y"
   },
   "92": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "93": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "94": {
-    "o": "sty $hh,x"
+    "ins": "sty $hh,x"
   },
   "95": {
-    "o": "sta $hh,x"
+    "ins": "sta $hh,x"
   },
   "96":{
-    "o": "stx $hh,y"
+    "ins": "stx $hh,y"
   },
   "97": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "98": {
-    "o": "tya"
+    "ins": "tya"
   },
   "99":{
-    "o": "sta $hhll,y"
+    "ins": "sta $hhll,y"
   },
   "9a": {
-    "o": "txs"
+    "ins": "txs"
   },
   "9b": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "9c": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "9d":{
-    "o": "sta $hhll,x"
+    "ins": "sta $hhll,x"
   },
   "9e": {
-    "o": "shx $hhll,y",
-    "x": 1
+    "ins": "shx $hhll,y",
+    "ill": 1
   },
   "9f": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "a0":{
-    "o": "ldy #$hh"
+    "ins": "ldy #$hh"
   },
   "a1":{
-    "o": "lda ($hh,x)"
+    "ins": "lda ($hh,x)"
   },
   "a2":{
-    "o": "ldx #$hh"
+    "ins": "ldx #$hh"
   },
   "a3": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "a4":{
-    "o": "ldy $hh"
+    "ins": "ldy $hh"
   },
   "a5": {
-    "o": "lda $hh"
+    "ins": "lda $hh"
   },
   "a6":{
-    "o": "ldx $hh"
+    "ins": "ldx $hh"
   },
   "a7": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "a8":{
-    "o": "tay"
+    "ins": "tay"
   },
   "a9":{
-    "o": "lda #$hh"
+    "ins": "lda #$hh"
   },
   "aa": {
-    "o": "tax"
+    "ins": "tax"
   },
   "ab": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "ac":{
-    "o": "ldy $hhll"
+    "ins": "ldy $hhll"
   },
   "ad":{
-    "o": "lda $hhll"
+    "ins": "lda $hhll"
   },
   "ae":{
-    "o": "ldx $hhll"
+    "ins": "ldx $hhll"
   },
   "af": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "b0": {
-    "o": "bcs $hh",
-    "r": 1
+    "ins": "bcs $hh",
+    "rel": 1
   },
   "b1":{
-    "o": "lda ($hh),y"
+    "ins": "lda ($hh),y"
   },
   "b2": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "b3": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "b4": {
-    "o": "ldy $hh,x"
+    "ins": "ldy $hh,x"
   },
   "b5": {
-    "o": "lda $hh,x"
+    "ins": "lda $hh,x"
   },
   "b6": {
-    "o": "ldx $hh,x"
+    "ins": "ldx $hh,x"
   },
   "b7": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "b8": {
-    "o": "clv"
+    "ins": "clv"
   },
   "b9":{
-    "o": "lda $hhll,y"
+    "ins": "lda $hhll,y"
   },
   "ba": {
-    "o": "tsx"
+    "ins": "tsx"
   },
   "bb": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "bc":{
-    "o": "ldy $hhll,x"
+    "ins": "ldy $hhll,x"
   },
   "bd":{
-    "o": "lda $hhll,x"
+    "ins": "lda $hhll,x"
   },
   "be":{
-    "o": "ldx $hhll,x"
+    "ins": "ldx $hhll,x"
   },
   "bf": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "c0":{
-    "o": "cpy #$hh"
+    "ins": "cpy #$hh"
   },
   "c1": {
-    "o": "cmp ($hh,x)"
+    "ins": "cmp ($hh,x)"
   },
   "c2": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "c3": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "c4":{
-    "o": "cpy $hh"
+    "ins": "cpy $hh"
   },
   "c5": {
-    "o": "cmp $hh"
+    "ins": "cmp $hh"
   },
   "c6":{
-    "o": "dec $hh"
+    "ins": "dec $hh"
   },
   "c7": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "c8":{
-    "o": "iny"
+    "ins": "iny"
   },
   "c9":{
-    "o": "cmp #$hh"
+    "ins": "cmp #$hh"
   },
   "ca": {
-    "o": "dex"
+    "ins": "dex"
   },
   "cb": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "cc": {
-    "o": "cpy $hhll"
+    "ins": "cpy $hhll"
   },
   "cd": {
-    "o": "cmp $hhll"
+    "ins": "cmp $hhll"
   },
   "ce":{
-    "o": "dec $hhll"
+    "ins": "dec $hhll"
   },
   "cf": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "d0":{
-    "o": "bne $hh",
-    "r": 1
+    "ins": "bne $hh",
+    "rel": 1
   },
   "d1":{
-    "o": "cmp ($hh),y"
+    "ins": "cmp ($hh),y"
   },
   "d2": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "d3": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "d4": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "d5": {
-    "o": "cmp $hh,x"
+    "ins": "cmp $hh,x"
   },
   "d6": {
-    "o": "dec $hh,x"
+    "ins": "dec $hh,x"
   },
   "d7": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "d8": {
-    "o": "cld"
+    "ins": "cld"
   },
   "d9":{
-    "o": "cmp $hhll,y"
+    "ins": "cmp $hhll,y"
   },
   "da": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "db": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "dc": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "dd":{
-    "o": "cmp $hhll,x"
+    "ins": "cmp $hhll,x"
   },
   "de":{
-    "o": "dec $hhll,x"
+    "ins": "dec $hhll,x"
   },
   "df": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "e0":{
-    "o": "cpx #$hh"
+    "ins": "cpx #$hh"
   },
   "e1": {
-    "o": "sbc ($hh,x)"
+    "ins": "sbc ($hh,x)"
   },
   "e2": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "e3": {
-    "o": "isb ($hh,x)",
-    "x": 1
+    "ins": "isb ($hh,x)",
+    "ill": 1
   },
   "e4": {
-    "o": "cpx $hh"
+    "ins": "cpx $hh"
   },
   "e5": {
-    "o": "sbc $hh"
+    "ins": "sbc $hh"
   },
   "e6":{
-    "o": "inc $hh"
+    "ins": "inc $hh"
   },
   "e7": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "e8": {
-    "o": "inx"
+    "ins": "inx"
   },
   "e9":{
-    "o": "sbc #$hh"
+    "ins": "sbc #$hh"
   },
   "ea": {
-    "o": "nop"
+    "ins": "nop"
   },
   "eb": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "ec":{
-    "o": "cpx $hhll"
+    "ins": "cpx $hhll"
   },
   "ed": {
-    "o": "sbc $hhll"
+    "ins": "sbc $hhll"
   },
   "ee": {
-    "o": "inc $hhll"
+    "ins": "inc $hhll"
   },
   "ef": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "f0":{
-    "o": "beq $hh",
-    "r": 1
+    "ins": "beq $hh",
+    "rel": 1
   },
   "f1":{
-    "o": "sbc ($hh),y"
+    "ins": "sbc ($hh),y"
   },
   "f2": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "f3": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "f4": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "f5": {
-    "o": "sbc $hh,x"
+    "ins": "sbc $hh,x"
   },
   "f6": {
-    "o": "inc $hh,x"
+    "ins": "inc $hh,x"
   },
   "f7": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "f8": {
-    "o": "sed"
+    "ins": "sed"
   },
   "f9":{
-    "o": "sbc $hhll,y"
+    "ins": "sbc $hhll,y"
   },
   "fa": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "fb": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "fc": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   },
   "fd":{
-    "o": "sbc $hhll,x"
+    "ins": "sbc $hhll,x"
   },
   "fe":{
-    "o": "inc $hhll,x"
+    "ins": "inc $hhll,x"
   },
   "ff": {
-    "o": "!byte $hh",
-    "x": 1
+    "ins": "!byte $hh",
+    "ill": 1
   }
 }

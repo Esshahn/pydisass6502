@@ -86,7 +86,17 @@ def create_program(assembly):
             label + "           " + \
             command["i"]
 
-        # add an extra line break for these instructions
+        # when an illegal command is processed we add the byte
+        # sequence as a comment, it's likely data
+        if "illegal" in command:
+            comment_bytes = ""
+            for byte in command["b"]:
+                comment_bytes = comment_bytes + \
+                    "$" + number_to_hex(byte) + ", "
+            comment_bytes = comment_bytes[:-2]
+            program = program + "       ; " + comment_bytes
+
+        # add an extra line break after these instructions
         if "rts" in command["i"] or "jmp" in command["i"] or "rti" in command["i"]:
             program = program + "\n"
     return(program)
@@ -117,12 +127,12 @@ def bytes_to_asm(bytes, startaddr, opcodes):
     while pc < end:
         byte = bytes[pc]
         instruction = opcodes[number_to_hex(byte)]
-        opcode = instruction["o"]
+        opcode = instruction["ins"]
 
         # check for the key "r" in the opcode json
         # which stands for "relative addressing"
         # it is needed e.g. for branching like BNE, BCS etc.
-        if "r" in instruction:
+        if "rel" in instruction:
             is_relative = True
         else:
             is_relative = False
@@ -191,6 +201,10 @@ def bytes_to_asm(bytes, startaddr, opcodes):
         # we need this when we cleanup unneeded labels
         if is_relative:
             line["rel_branch"] = label_prefix+address
+
+        if "ill" in instruction:
+            line["illegal"] = 1
+
         asm.append(line)
 
     asm = remove_unused_labels(asm)
