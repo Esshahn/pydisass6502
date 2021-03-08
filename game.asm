@@ -14,16 +14,16 @@
             ldy #$0c
             ldx #$00
 
-l0819
-            lda l0824,x
+x0819
+            lda x0824,x
             sta $0400,x
             inx
             dey
-            bne l0819
+            bne x0819
             rts
 
 
-l0824
+x0824
             php
             ora $0c
             nop $200f               ; $0c, $0f, $20

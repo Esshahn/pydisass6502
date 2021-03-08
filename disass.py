@@ -1,4 +1,7 @@
 import json
+import argparse
+import os
+import sys
 
 
 def load_json(filename):
@@ -127,7 +130,7 @@ def bytes_to_asm(bytes, startaddr, opcodes):
     asm = []
     pc = 0
     end = len(bytes)
-    label_prefix = "l"
+    label_prefix = "x"
 
     while pc < end:
         byte = bytes[pc]
@@ -222,4 +225,35 @@ def bytes_to_asm(bytes, startaddr, opcodes):
     return asm
 
 
-opcodes = load_json("opcodes.json")
+# load the opcodes list
+opcodes = load_json("lib/opcodes.json")
+
+# Create the parser
+my_parser = argparse.ArgumentParser(
+    description='disassembles a 6502 machine code binary file into assembly source.', epilog='Example: disass.py game.prg game.asm 0801')
+
+# Add the arguments
+my_parser.add_argument('inputfile',
+                       help='name of the input binary, e.g. game.prg'
+                       )
+my_parser.add_argument('outputfile',
+                       help='name of the generated assembly file, e.g. game.asm.')
+my_parser.add_argument('startaddress',
+                       help='start address in hex (!) format, e.g. 0801')
+
+# Execute the parse_args() method
+args = my_parser.parse_args()
+
+# load prg
+bytes = load_file(args.inputfile)
+
+# turn bytes into asm code
+startaddr = int(args.startaddress, 16)
+assembly = bytes_to_asm(bytes, startaddr, opcodes)
+
+# convert it into a readable format
+display_full_assembly(assembly)
+program = create_program(assembly)
+
+# save as file
+write_asm_file(args.outputfile, program)
