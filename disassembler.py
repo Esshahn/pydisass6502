@@ -85,6 +85,10 @@ def create_program(assembly):
         program = program + "\n" + \
             label + "           " + \
             command["i"]
+
+        # add an extra line break for these instructions
+        if "rts" in command["i"] or "jmp" in command["i"] or "rti" in command["i"]:
+            program = program + "\n"
     return(program)
 
 
@@ -123,7 +127,12 @@ def bytes_to_asm(bytes, startaddr, opcodes):
         else:
             is_relative = False
 
-        instruction_length = instruction["l"]
+        instruction_length = 0
+        if "hh" in opcode:
+            instruction_length = instruction_length + 1
+        if "ll" in opcode:
+            instruction_length = instruction_length + 1
+
         memory_location = str(hex(startaddr + pc)[2:])
         label = label_prefix+memory_location
         byte_sequence = []

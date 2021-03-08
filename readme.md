@@ -5,6 +5,5 @@ A simple 6502 machine language disassembler written in Python.
 This disassembler is in a very early phase and currently not functional. It might serve as a good starting point if you want to roll your own disassembler though.
 
 To Do:
-* implement relative branching
-* implement labels
+* implement illegal opcodes
 * guess data areas
