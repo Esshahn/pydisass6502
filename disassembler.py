@@ -31,7 +31,7 @@ def display_full_assembly(assembly):
         # display the sequence of byte for an instruction
         byte_sequence = ""
         for byte in command["b"]:
-            byte_sequence = byte_sequence + number_to_hex(byte) + " "
+            byte_sequence = byte_sequence + number_to_hex_byte(byte) + " "
 
         if command["show_label"]:
             label_info = "-"
@@ -71,6 +71,7 @@ def remove_unused_labels(asm):
 
 # formats the assembly code so it can be saved as a program later
 def create_program(assembly):
+    tabs = 4     # number of spaces for each "tab"
 
     program = "; converted with pydisass6502 by awsm of mayday!"
     program += "\n\n* = $" + assembly[0]["a"]
@@ -83,18 +84,21 @@ def create_program(assembly):
             label = ""
 
         program += "\n" + \
-            label + "           " + \
+            label + (tabs * 3 * " ") + \
             command["i"]
 
         # when an illegal command is processed we add the byte
         # sequence as a comment, it's likely data
         if "ill" in command:
             comment_bytes = ""
+
             for byte in command["b"]:
                 comment_bytes = comment_bytes + \
-                    "$" + number_to_hex(byte) + ", "
+                    "$" + number_to_hex_byte(byte) + ", "
             comment_bytes = comment_bytes[:-2]
-            program += "       ; " + comment_bytes
+
+            program += (tabs * 6 -
+                        int(len(command["i"]))) * " " + "; " + comment_bytes
 
         # add an extra line break after these instructions
         if "rts" in command["i"] or "jmp" in command["i"] or "rti" in command["i"]:
@@ -108,11 +112,12 @@ def write_asm_file(filename, data):
     f.close()
 
 
-def number_to_hex(number):
-    val = hex(number)[2:]
-    if len(val) == 1:
-        val = "0" + val
-    return val
+def number_to_hex_byte(number):
+    return ("0" + hex(number)[2:])[-2:]
+
+
+def number_to_hex_word(number):
+    return ("0" + hex(number)[2:])[-4:]
 
 
 # inspects byte for byte and converts them into
@@ -126,7 +131,7 @@ def bytes_to_asm(bytes, startaddr, opcodes):
 
     while pc < end:
         byte = bytes[pc]
-        opcode = opcodes[number_to_hex(byte)]
+        opcode = opcodes[number_to_hex_byte(byte)]
         instruction = opcode["ins"]
 
         # check for the key "rel" in the opcode json
@@ -137,7 +142,7 @@ def bytes_to_asm(bytes, startaddr, opcodes):
         else:
             is_relative = False
 
-        memory_location_hex = str(hex(startaddr + pc)[2:])
+        memory_location_hex = number_to_hex_word(startaddr + pc)
         label = label_prefix + memory_location_hex
 
         byte_sequence = []
@@ -157,15 +162,17 @@ def bytes_to_asm(bytes, startaddr, opcodes):
             if is_relative:
                 if high_byte > 127:
                     # substract (255 - highbyte) from current address
-                    address = str(hex(startaddr + pc - (255 - high_byte))[2:])
+                    address = number_to_hex_word(
+                        startaddr + pc - (255 - high_byte))
                 else:
                     # add highbyte to current address
-                    address = str(hex(startaddr + pc + high_byte + 1)[2:])
+                    address = number_to_hex_word(
+                        startaddr + pc + high_byte + 1)
                 instruction = instruction.replace(
                     "$hh", label_prefix + address)
             else:
                 instruction = instruction.replace(
-                    "hh", number_to_hex(high_byte))
+                    "hh", number_to_hex_byte(high_byte))
 
             byte_sequence.append(high_byte)
 
@@ -176,8 +183,10 @@ def bytes_to_asm(bytes, startaddr, opcodes):
             high_byte = bytes[pc]
 
             # replace with new word
-            instruction = instruction.replace("hh", number_to_hex(high_byte))
-            instruction = instruction.replace("ll", number_to_hex(low_byte))
+            instruction = instruction.replace(
+                "hh", number_to_hex_byte(high_byte))
+            instruction = instruction.replace(
+                "ll", number_to_hex_byte(low_byte))
 
             # is the memory address within our own code?
             # then we should replace it with a label to that address
@@ -185,7 +194,7 @@ def bytes_to_asm(bytes, startaddr, opcodes):
             if (absolute_address >= startaddr) & (absolute_address <= startaddr+end):
                 instruction = instruction.replace("$", label_prefix)
                 is_relative = True
-                address = hex((high_byte << 8) + low_byte)[2:]
+                address = number_to_hex_word((high_byte << 8) + low_byte)
 
             # store the bytes - we might need them later
             byte_sequence.append(low_byte)
@@ -203,7 +212,7 @@ def bytes_to_asm(bytes, startaddr, opcodes):
         if is_relative:
             line["rel"] = label_prefix + address
 
-        if "ill" in instruction:
+        if "ill" in opcode:
             line["ill"] = 1
 
         asm.append(line)
