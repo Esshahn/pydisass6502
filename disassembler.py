@@ -54,8 +54,8 @@ def remove_unused_labels(asm):
     labels_used = []
 
     for line in asm:
-        if "rel_branch" in line:
-            labels_used.append(line["rel_branch"])
+        if "rel" in line:
+            labels_used.append(line["rel"])
 
     # step 2: add key to each line to show the label if it was actually used
     length = len(asm)
@@ -73,7 +73,7 @@ def remove_unused_labels(asm):
 def create_program(assembly):
 
     program = "; converted with pydisass6502 by awsm of mayday!"
-    program = program + "\n\n* = $" + assembly[0]["a"]
+    program += "\n\n* = $" + assembly[0]["a"]
 
     for command in assembly:
         # put address, bytes and instruction together in one line
@@ -82,23 +82,23 @@ def create_program(assembly):
         else:
             label = ""
 
-        program = program + "\n" + \
+        program += "\n" + \
             label + "           " + \
             command["i"]
 
         # when an illegal command is processed we add the byte
         # sequence as a comment, it's likely data
-        if "illegal" in command:
+        if "ill" in command:
             comment_bytes = ""
             for byte in command["b"]:
                 comment_bytes = comment_bytes + \
                     "$" + number_to_hex(byte) + ", "
             comment_bytes = comment_bytes[:-2]
-            program = program + "       ; " + comment_bytes
+            program += "       ; " + comment_bytes
 
         # add an extra line break after these instructions
         if "rts" in command["i"] or "jmp" in command["i"] or "rti" in command["i"]:
-            program = program + "\n"
+            program += "\n"
     return(program)
 
 
@@ -126,27 +126,28 @@ def bytes_to_asm(bytes, startaddr, opcodes):
 
     while pc < end:
         byte = bytes[pc]
-        instruction = opcodes[number_to_hex(byte)]
-        opcode = instruction["ins"]
+        opcode = opcodes[number_to_hex(byte)]
+        instruction = opcode["ins"]
 
-        # check for the key "r" in the opcode json
+        # check for the key "rel" in the opcode json
         # which stands for "relative addressing"
         # it is needed e.g. for branching like BNE, BCS etc.
-        if "rel" in instruction:
+        if "rel" in opcode:
             is_relative = True
         else:
             is_relative = False
 
-        instruction_length = 0
-        if "hh" in opcode:
-            instruction_length = instruction_length + 1
-        if "ll" in opcode:
-            instruction_length = instruction_length + 1
+        memory_location_hex = str(hex(startaddr + pc)[2:])
+        label = label_prefix + memory_location_hex
 
-        memory_location = str(hex(startaddr + pc)[2:])
-        label = label_prefix+memory_location
         byte_sequence = []
         byte_sequence.append(byte)
+
+        instruction_length = 0
+        if "hh" in instruction:
+            instruction_length += 1
+        if "ll" in instruction:
+            instruction_length += 1
 
         if instruction_length == 1:
             pc += 1
@@ -160,9 +161,11 @@ def bytes_to_asm(bytes, startaddr, opcodes):
                 else:
                     # add highbyte to current address
                     address = str(hex(startaddr + pc + high_byte + 1)[2:])
-                opcode = opcode.replace("$hh", label_prefix + address)
+                instruction = instruction.replace(
+                    "$hh", label_prefix + address)
             else:
-                opcode = opcode.replace("hh", number_to_hex(high_byte))
+                instruction = instruction.replace(
+                    "hh", number_to_hex(high_byte))
 
             byte_sequence.append(high_byte)
 
@@ -173,14 +176,14 @@ def bytes_to_asm(bytes, startaddr, opcodes):
             high_byte = bytes[pc]
 
             # replace with new word
-            opcode = opcode.replace("hh", number_to_hex(high_byte))
-            opcode = opcode.replace("ll", number_to_hex(low_byte))
+            instruction = instruction.replace("hh", number_to_hex(high_byte))
+            instruction = instruction.replace("ll", number_to_hex(low_byte))
 
             # is the memory address within our own code?
             # then we should replace it with a label to that address
             absolute_address = (high_byte << 8) + low_byte
             if (absolute_address >= startaddr) & (absolute_address <= startaddr+end):
-                opcode = opcode.replace("$", label_prefix)
+                instruction = instruction.replace("$", label_prefix)
                 is_relative = True
                 address = hex((high_byte << 8) + low_byte)[2:]
 
@@ -188,24 +191,23 @@ def bytes_to_asm(bytes, startaddr, opcodes):
             byte_sequence.append(low_byte)
             byte_sequence.append(high_byte)
 
-        pc = pc+1
-
         line = {
-            "a": memory_location,
+            "a": memory_location_hex,
             "l": label,
             "b": byte_sequence,
-            "i": opcode,
+            "i": instruction
         }
 
         # all relative/label data should get a new key so we can identify them
         # we need this when we cleanup unneeded labels
         if is_relative:
-            line["rel_branch"] = label_prefix+address
+            line["rel"] = label_prefix + address
 
         if "ill" in instruction:
-            line["illegal"] = 1
+            line["ill"] = 1
 
         asm.append(line)
+        pc = pc+1
 
     asm = remove_unused_labels(asm)
     return asm
