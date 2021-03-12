@@ -1,3 +1,17 @@
+#
+#   PyDisAss6502 by Ingo Hinterding 2021
+#   A Disassembler for 6502 machine code language into mnemonics
+#
+#   usage:
+#   python disass.py inputfile outputfile startaddress
+#   inputfile: the binary to disassemble, e.g. game.prg
+#   outputfile: the filename for the exported source code, e.g. source.asm
+#   startaddress: the start address of the code as hex, e.g. 0801
+#
+#   example:
+#   python3 disass.py game.prg source.asm 0801
+#
+
 import json
 import argparse
 import os
@@ -23,11 +37,12 @@ def load_file(filename):
     return(bytecode)
 
 
-# prints out the converted assembly program
-# including memory address, bytes and instructions
-# useful for debugging
 def display_full_assembly(assembly):
-
+    """ 
+    prints out the converted assembly program
+    including memory address, bytes and instructions
+    useful for debugging
+    """
     program = ""
     for command in assembly:
 
@@ -49,9 +64,11 @@ def display_full_assembly(assembly):
 
 
 def remove_unused_labels(asm):
-    # goes through the code and checks which relative labels are
-    # in use, then adds a "show_label" key to each address that
-    # is a branching destination
+    """
+    goes through the code and checks which relative labels are
+    in use, then adds a "show_label" key to each address that
+    is a branching destination
+    """
 
     # step 1: collect all relative branches in code
     labels_used = []
@@ -72,8 +89,8 @@ def remove_unused_labels(asm):
     return (asm)
 
 
-# formats the assembly code so it can be saved as a program later
 def create_program(assembly):
+    """formats the assembly code so it can be saved as a program later"""
     tabs = 4     # number of spaces for each "tab"
 
     program = "; converted with pydisass6502 by awsm of mayday!"
@@ -123,15 +140,18 @@ def number_to_hex_word(number):
     return ("0" + hex(number)[2:])[-4:]
 
 
-# inspects byte for byte and converts them into
-# instructions based on the opcode json
-# returns an array with objects for each code line
 def bytes_to_asm(bytes, startaddr, opcodes):
+    """
+    inspects byte for byte and converts them into
+    instructions based on the opcode json
+    returns an array with objects for each code line
+    """
     asm = []
     pc = 0
     end = len(bytes)
     label_prefix = "x"
-
+    print(end)
+    print("")
     while pc < end:
         byte = bytes[pc]
         opcode = opcodes[number_to_hex_byte(byte)]
@@ -156,6 +176,10 @@ def bytes_to_asm(bytes, startaddr, opcodes):
             instruction_length += 1
         if "ll" in instruction:
             instruction_length += 1
+
+        # would the opcode be longer than the file end? then set length to 0
+        if pc + instruction_length > end:
+            instruction_length = 0
 
         if instruction_length == 1:
             pc += 1
@@ -224,13 +248,17 @@ def bytes_to_asm(bytes, startaddr, opcodes):
     asm = remove_unused_labels(asm)
     return asm
 
+#
+#
+#   command line interface
+#
+#
 
-# load the opcodes list
-opcodes = load_json("lib/opcodes.json")
 
 # Create the parser
 my_parser = argparse.ArgumentParser(
-    description='disassembles a 6502 machine code binary file into assembly source.', epilog='Example: disass.py game.prg game.asm 0801')
+    description='disassembles a 6502 machine code binary file into assembly source.',
+    epilog='Example: disass.py game.prg game.asm 0801')
 
 # Add the arguments
 my_parser.add_argument('inputfile',
@@ -243,6 +271,16 @@ my_parser.add_argument('startaddress',
 
 # Execute the parse_args() method
 args = my_parser.parse_args()
+
+
+#
+#
+#   file conversion
+#
+#
+
+# load the opcodes list
+opcodes = load_json("lib/opcodes.json")
 
 # load prg
 bytes = load_file(args.inputfile)
