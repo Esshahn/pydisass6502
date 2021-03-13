@@ -3,13 +3,12 @@
 #   A Disassembler for 6502 machine code language into mnemonics
 #
 #   usage:
-#   python disass.py inputfile outputfile startaddress
+#   python disass.py inputfile outputfile
 #   inputfile: the binary to disassemble, e.g. game.prg
 #   outputfile: the filename for the exported source code, e.g. source.asm
-#   startaddress: the start address of the code as hex, e.g. 0801
 #
 #   example:
-#   python3 disass.py game.prg source.asm 0801
+#   python3 disass.py game.prg source.asm
 #
 
 import json
@@ -269,7 +268,7 @@ def bytes_to_asm(bytes, startaddr, opcodes):
 # Create the parser
 my_parser = argparse.ArgumentParser(
     description='disassembles a 6502 machine code binary file into assembly source.',
-    epilog='Example: disass.py game.prg game.asm 0801')
+    epilog='Example: disass.py game.prg game.asm')
 
 # Add the arguments
 my_parser.add_argument('inputfile',
