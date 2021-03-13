@@ -59,7 +59,6 @@ def number_to_hex_word(number):
 
 
 def print_bytes_as_hex(bytes):
-    print("\x1b[33;21m")
     for byte in bytes:
         print(number_to_hex_byte(byte), end=" ")
     print()
@@ -77,7 +76,6 @@ def remove_unused_labels(asm):
 
     for line in asm:
         if "rel" in line:
-            print(line["rel"])
             labels_used.append(line["rel"])
 
     # step 2: add key to each line to show the label if it was actually used
@@ -298,6 +296,7 @@ opcodes = load_json("lib/opcodes.json")
 # load prg
 startaddress, bytes = load_file(args.inputfile)
 
+print("\x1b[33;21m")
 print_bytes_as_hex(bytes)
 
 
