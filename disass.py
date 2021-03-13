@@ -25,16 +25,24 @@ def load_json(filename):
 
 
 def load_file(filename):
+    """
+    input: filename
+    returns: startaddress (int), bytes
+    """
+
     bytecode = []
-    with open(filename, "rb") as f:
-        byte = f.read(1)
-        while byte:
-            byte = f.read(1)
-            i = int.from_bytes(byte, byteorder='big')
-            bytecode.append(i)
-    bytecode = bytecode[1:]  # remove first 2 bytes
-    bytecode = bytecode[:-1]  # remove last byte
-    return(bytecode)
+
+    file = open(filename, "rb")
+    byte = file.read(1)
+    while byte:
+        i = int.from_bytes(byte, byteorder='big')
+        byte = file.read(1)
+        bytecode.append(i)
+    file.close()
+
+    startaddress = (bytecode[1] << 8) + bytecode[0]
+    bytecode = bytecode[2:]  # remove first 2 bytes
+    return(startaddress, bytecode)
 
 
 def display_full_assembly(assembly):
@@ -44,22 +52,24 @@ def display_full_assembly(assembly):
     useful for debugging
     """
     program = ""
+    just_show_first_kb = 0
     for command in assembly:
+        just_show_first_kb += 1
+        if just_show_first_kb < 1024:
+            # display the sequence of byte for an instruction
+            byte_sequence = ""
+            for byte in command["b"]:
+                byte_sequence = byte_sequence + number_to_hex_byte(byte) + " "
 
-        # display the sequence of byte for an instruction
-        byte_sequence = ""
-        for byte in command["b"]:
-            byte_sequence = byte_sequence + number_to_hex_byte(byte) + " "
+            if command["show_label"]:
+                label_info = "-"
+            else:
+                label_info = ""
 
-        if command["show_label"]:
-            label_info = "-"
-        else:
-            label_info = ""
-
-         # put address, bytes and instruction together in one line
-        program = program + "\n" + \
-            command["a"] + " | " + command["l"] + label_info + "    " + \
-            byte_sequence + "       " + command["i"]
+            # put address, bytes and instruction together in one line
+            program = program + "\n" + \
+                command["a"] + " | " + command["l"] + label_info + "    " + \
+                byte_sequence + "       " + command["i"]
     print(program)
 
 
@@ -150,8 +160,6 @@ def bytes_to_asm(bytes, startaddr, opcodes):
     pc = 0
     end = len(bytes)
     label_prefix = "x"
-    print(end)
-    print("")
     while pc < end:
         byte = bytes[pc]
         opcode = opcodes[number_to_hex_byte(byte)]
@@ -179,7 +187,7 @@ def bytes_to_asm(bytes, startaddr, opcodes):
 
         # would the opcode be longer than the file end? then set length to 0
         if pc + instruction_length > end:
-            instruction_length = 0
+            instruction_length = -1
 
         if instruction_length == 1:
             pc += 1
@@ -227,6 +235,9 @@ def bytes_to_asm(bytes, startaddr, opcodes):
             byte_sequence.append(low_byte)
             byte_sequence.append(high_byte)
 
+        if instruction_length == -1:
+            instruction = "!byte $" + number_to_hex_byte(byte)
+
         line = {
             "a": memory_location_hex,
             "l": label,
@@ -266,8 +277,6 @@ my_parser.add_argument('inputfile',
                        )
 my_parser.add_argument('outputfile',
                        help='name of the generated assembly file, e.g. game.asm.')
-my_parser.add_argument('startaddress',
-                       help='start address in hex (!) format, e.g. 0801')
 
 # Execute the parse_args() method
 args = my_parser.parse_args()
@@ -283,11 +292,10 @@ args = my_parser.parse_args()
 opcodes = load_json("lib/opcodes.json")
 
 # load prg
-bytes = load_file(args.inputfile)
+startaddress, bytes = load_file(args.inputfile)
 
 # turn bytes into asm code
-startaddr = int(args.startaddress, 16)
-assembly = bytes_to_asm(bytes, startaddr, opcodes)
+assembly = bytes_to_asm(bytes, startaddress, opcodes)
 
 # convert it into a readable format
 display_full_assembly(assembly)
