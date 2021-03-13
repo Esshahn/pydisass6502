@@ -44,32 +44,25 @@ def load_file(filename):
     return(startaddress, bytecode)
 
 
-def display_full_assembly(assembly):
-    """ 
-    prints out the converted assembly program
-    including memory address, bytes and instructions
-    useful for debugging
-    """
-    program = ""
-    just_show_first_kb = 0
-    for command in assembly:
-        just_show_first_kb += 1
-        if just_show_first_kb < 1024:
-            # display the sequence of byte for an instruction
-            byte_sequence = ""
-            for byte in command["b"]:
-                byte_sequence = byte_sequence + number_to_hex_byte(byte) + " "
+def write_asm_file(filename, data):
+    f = open(filename, "w")
+    f.write(data)
+    f.close()
 
-            if command["show_label"]:
-                label_info = "-"
-            else:
-                label_info = ""
 
-            # put address, bytes and instruction together in one line
-            program = program + "\n" + \
-                command["a"] + " | " + command["l"] + label_info + "    " + \
-                byte_sequence + "       " + command["i"]
-    print(program)
+def number_to_hex_byte(number):
+    return ("0" + hex(number)[2:])[-2:]
+
+
+def number_to_hex_word(number):
+    return ("0" + hex(number)[2:])[-4:]
+
+
+def print_bytes_as_hex(bytes):
+    print("\x1b[33;21m")
+    for byte in bytes:
+        print(number_to_hex_byte(byte), end=" ")
+    print()
 
 
 def remove_unused_labels(asm):
@@ -84,6 +77,7 @@ def remove_unused_labels(asm):
 
     for line in asm:
         if "rel" in line:
+            print(line["rel"])
             labels_used.append(line["rel"])
 
     # step 2: add key to each line to show the label if it was actually used
@@ -98,8 +92,34 @@ def remove_unused_labels(asm):
     return (asm)
 
 
-def create_program(assembly):
-    """formats the assembly code so it can be saved as a program later"""
+def save_debug(assembly, outputfile):
+    """ 
+    prints out the converted assembly program
+    including memory address, bytes and instructions
+    useful for debugging
+    """
+    program = ""
+
+    for command in assembly:
+        # display the sequence of byte for an instruction
+        byte_sequence = ""
+        for byte in command["b"]:
+            byte_sequence = byte_sequence + number_to_hex_byte(byte) + " "
+
+        if command["show_label"]:
+            label_info = "-"
+        else:
+            label_info = ""
+
+        # put address, bytes and instruction together in one line
+        program = program + "\n" + \
+            command["a"] + " | " + command["l"] + label_info + "    " + \
+            byte_sequence + "       " + command["i"]
+    write_asm_file("debug-"+outputfile, program)
+
+
+def save_program(assembly, outputfile):
+    """formats the assembly code so it can be saved as a program"""
     tabs = 4     # number of spaces for each "tab"
 
     program = "; converted with pydisass6502 by awsm of mayday!"
@@ -132,24 +152,10 @@ def create_program(assembly):
         # add an extra line break after these instructions
         if "rts" in command["i"] or "jmp" in command["i"] or "rti" in command["i"]:
             program += "\n"
-    return(program)
+    write_asm_file(outputfile, program)
 
 
-def write_asm_file(filename, data):
-    f = open(filename, "w")
-    f.write(data)
-    f.close()
-
-
-def number_to_hex_byte(number):
-    return ("0" + hex(number)[2:])[-2:]
-
-
-def number_to_hex_word(number):
-    return ("0" + hex(number)[2:])[-4:]
-
-
-def bytes_to_asm(bytes, startaddr, opcodes):
+def bytes_to_asm(startaddr, bytes, opcodes):
     """
     inspects byte for byte and converts them into
     instructions based on the opcode json
@@ -174,7 +180,6 @@ def bytes_to_asm(bytes, startaddr, opcodes):
 
         memory_location_hex = number_to_hex_word(startaddr + pc)
         label = label_prefix + memory_location_hex
-
         byte_sequence = []
         byte_sequence.append(byte)
 
@@ -293,12 +298,12 @@ opcodes = load_json("lib/opcodes.json")
 # load prg
 startaddress, bytes = load_file(args.inputfile)
 
+print_bytes_as_hex(bytes)
+
+
 # turn bytes into asm code
-assembly = bytes_to_asm(bytes, startaddress, opcodes)
+assembly = bytes_to_asm(startaddress, bytes, opcodes)
 
 # convert it into a readable format
-display_full_assembly(assembly)
-program = create_program(assembly)
-
-# save as file
-write_asm_file(args.outputfile, program)
+save_debug(assembly, args.outputfile)
+save_program(assembly, args.outputfile)
