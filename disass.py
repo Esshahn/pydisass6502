@@ -54,14 +54,32 @@ def number_to_hex_byte(number):
     return ("0" + hex(number)[2:])[-2:]
 
 
+def hex_to_number(hex):
+    return (int(hex, 16))
+
+
 def number_to_hex_word(number):
     return ("0" + hex(number)[2:])[-4:]
+
+
+def bytes_to_addr(hh, ll):
+    """ takes two hex bytes e.g. a8, ff and returns their int address e.g. 4096"""
+    return (int(hh, 16) << 8) + int(ll, 16)
 
 
 def print_bytes_as_hex(bytes):
     for byte in bytes:
         print(number_to_hex_byte(byte), end=" ")
     print()
+
+
+def print_bytes_array(bytes_table):
+    for byte in bytes_table:
+        print(byte)
+
+
+def addr_in_program(addr, startaddr, endaddr):
+    return True if addr >= startaddr and addr <= startaddr + endaddr else False
 
 
 def remove_unused_labels(asm):
@@ -90,176 +108,150 @@ def remove_unused_labels(asm):
     return (asm)
 
 
-def save_debug(assembly, outputfile):
-    """ 
-    prints out the converted assembly program
-    including memory address, bytes and instructions
-    useful for debugging
-    """
-    program = ""
-
-    for command in assembly:
-        # display the sequence of byte for an instruction
-        byte_sequence = ""
-        for byte in command["b"]:
-            byte_sequence = byte_sequence + number_to_hex_byte(byte) + " "
-
-        if command["show_label"]:
-            label_info = "-"
-        else:
-            label_info = ""
-
-        # put address, bytes and instruction together in one line
-        program = program + "\n" + \
-            command["a"] + " | " + command["l"] + label_info + "    " + \
-            byte_sequence + "       " + command["i"]
-    write_asm_file("debug-"+outputfile, program)
-
-
-def save_program(assembly, outputfile):
+def save_program(byte_array, opcodes, outputfile):
     """formats the assembly code so it can be saved as a program"""
-    tabs = 4     # number of spaces for each "tab"
 
     program = "; converted with pydisass6502 by awsm of mayday!"
-    program += "\n\n* = $" + assembly[0]["a"]
+    program += "\n\n* = $" + number_to_hex_word(byte_array[0]["addr"]) + "\n\n"
 
-    for command in assembly:
-        # put address, bytes and instruction together in one line
-        if command["show_label"]:
-            label = "\n" + command["l"] + "\n"
-        else:
-            label = ""
+    end = len(byte_array)
+    startaddr = byte_array[0]["addr"]
+    endaddr = startaddr + end
 
-        program += "\n" + \
-            label + (tabs * 3 * " ") + \
-            command["i"]
+    i = 0
+    while i < end:
+        label = ""
+        byte = byte_array[i]["byte"]
 
-        # when an illegal command is processed we add the byte
-        # sequence as a comment, it's likely data
-        if "ill" in command:
-            comment_bytes = ""
+        if byte_array[i]["dest"]:
+            label = "l" + number_to_hex_word(byte_array[i]["addr"])
 
-            for byte in command["b"]:
-                comment_bytes = comment_bytes + \
-                    "$" + number_to_hex_byte(byte) + ", "
-            comment_bytes = comment_bytes[:-2]
+        if byte_array[i]["data"]:
+            ins = "!byte $"+byte
 
-            program += (tabs * 6 -
-                        int(len(command["i"]))) * " " + "; " + comment_bytes
+        if byte_array[i]["code"]:
+            opcode = opcodes[byte]
+            ins = opcode["ins"]
+            length = get_instruction_length(ins)
 
-        # add an extra line break after these instructions
-        if "rts" in command["i"] or "jmp" in command["i"] or "rti" in command["i"]:
-            program += "\n"
+            if length == 1:
+                i += 1
+                high_byte = byte_array[i]["byte"]
+                ins = ins.replace("hh", high_byte)
+
+            if length == 2:
+                i += 1
+                low_byte = byte_array[i]["byte"]
+                i += 1
+                high_byte = byte_array[i]["byte"]
+                ins = ins.replace("hh", high_byte)
+                ins = ins.replace("ll", low_byte)
+
+        if label:
+            program += "\n" + label + "\n"
+        program += ins + "\n"
+        i += 1
+
     write_asm_file(outputfile, program)
 
 
-def bytes_to_asm(startaddr, bytes, opcodes):
-    """
-    inspects byte for byte and converts them into
-    instructions based on the opcode json
-    returns an array with objects for each code line
-    """
-    asm = []
+def get_instruction_length(opcode):
+    length = 0
+
+    if "hh" in opcode:
+        length += 1
+
+    if "ll" in opcode:
+        length += 1
+
+    return length
+
+
+def generate_byte_array(startaddr, bytes):
+    """ generates an empty data array for later usage """
+    bytes_table = []
     pc = 0
     end = len(bytes)
-    label_prefix = "x"
+
+    # generate the object to host all analytics data
     while pc < end:
         byte = bytes[pc]
-        opcode = opcodes[number_to_hex_byte(byte)]
-        instruction = opcode["ins"]
+        bytes_table.append(
+            {
+                "addr": startaddr + pc,     # address of byte in memory
+                "byte": number_to_hex_byte(byte),
+                "dest": 0,                 # is it the destination of a jump or branch instruction
+                "code": 0,                  # is it marked as code?
+                "data": 0                   # is it marked as data?
+            }
+        )
+        pc += 1
+    return bytes_table
 
-        # check for the key "rel" in the opcode json
-        # which stands for "relative addressing"
-        # it is needed e.g. for branching like BNE, BCS etc.
-        if "rel" in opcode:
-            is_relative = True
-        else:
-            is_relative = False
 
-        memory_location_hex = number_to_hex_word(startaddr + pc)
-        label = label_prefix + memory_location_hex
-        byte_sequence = []
-        byte_sequence.append(byte)
+def check_abs_jumps():
+    pass
 
-        instruction_length = 0
-        if "hh" in instruction:
-            instruction_length += 1
-        if "ll" in instruction:
-            instruction_length += 1
 
-        # would the opcode be longer than the file end? then set length to 0
-        if pc + instruction_length > end:
-            instruction_length = -1
+def analyze(startaddr, bytes, opcodes):
 
-        if instruction_length == 1:
-            pc += 1
-            high_byte = bytes[pc]
+    bytes_table = generate_byte_array(startaddr, bytes)
+    branch_mnemonics = ["4c"]
+    abs_address_mnemonics = ["ad", "8d"]
 
-            # if a relative instruction like BCC or BNE occurs
-            if is_relative:
-                if high_byte > 127:
-                    # substract (255 - highbyte) from current address
-                    address = number_to_hex_word(
-                        startaddr + pc - (255 - high_byte))
-                else:
-                    # add highbyte to current address
-                    address = number_to_hex_word(
-                        startaddr + pc + high_byte + 1)
-                instruction = instruction.replace(
-                    "$hh", label_prefix + address)
-            else:
-                instruction = instruction.replace(
-                    "hh", number_to_hex_byte(high_byte))
+    is_code = 1
+    is_data = 0
 
-            byte_sequence.append(high_byte)
+    i = 0
+    end = len(bytes_table)
 
-        if instruction_length == 2:
-            pc += 1
-            low_byte = bytes[pc]
-            pc += 1
-            high_byte = bytes[pc]
+    while i < end:
+        byte = bytes_table[i]["byte"]
+        opcode = opcodes[byte]
 
-            # replace with new word
-            instruction = instruction.replace(
-                "hh", number_to_hex_byte(high_byte))
-            instruction = instruction.replace(
-                "ll", number_to_hex_byte(low_byte))
+        if bytes_table[i]["data"]:
+            is_data = 1
 
-            # is the memory address within our own code?
-            # then we should replace it with a label to that address
-            absolute_address = (high_byte << 8) + low_byte
-            if (absolute_address >= startaddr) & (absolute_address <= startaddr+end):
-                instruction = instruction.replace("$", label_prefix)
-                is_relative = True
-                address = number_to_hex_word((high_byte << 8) + low_byte)
+        if bytes_table[i]["code"]:
+            is_code = 1
 
-            # store the bytes - we might need them later
-            byte_sequence.append(low_byte)
-            byte_sequence.append(high_byte)
+        if is_code:
+            instruction_length = get_instruction_length(opcode["ins"])
 
-        if instruction_length == -1:
-            instruction = "!byte $" + number_to_hex_byte(byte)
+            # set code
+            bytes_table[i]["code"] = 1
 
-        line = {
-            "a": memory_location_hex,
-            "l": label,
-            "b": byte_sequence,
-            "i": instruction
-        }
+            if byte in branch_mnemonics:
 
-        # all relative/label data should get a new key so we can identify them
-        # we need this when we cleanup unneeded labels
-        if is_relative:
-            line["rel"] = label_prefix + address
+                # we have a branching/jumping instruction, so we can't be sure anymore
+                # about the following bytes being code
+                is_code = 0
 
-        if "ill" in opcode:
-            line["ill"] = 1
+                destination_address = bytes_to_addr(
+                    bytes_table[i+2]["byte"], bytes_table[i+1]["byte"])
 
-        asm.append(line)
-        pc = pc+1
+                if addr_in_program(destination_address, startaddr, startaddr + end):
+                    # the hhll address must be code, so we mark that entry in the array
+                    table_pos = destination_address - startaddr
+                    bytes_table[table_pos]["code"] = 1
+                    bytes_table[table_pos]["dest"] = 1
 
-    asm = remove_unused_labels(asm)
-    return asm
+            if byte in abs_address_mnemonics:
+                destination_address = bytes_to_addr(
+                    bytes_table[i+2]["byte"], bytes_table[i+1]["byte"])
+
+                if addr_in_program(destination_address, startaddr, startaddr + end):
+                    # the hhll address must be data, so we mark that entry in the array
+                    table_pos = destination_address - startaddr
+                    bytes_table[table_pos]["data"] = 1
+                    bytes_table[table_pos]["dest"] = 1
+
+            i += instruction_length
+
+        i += 1
+
+    print_bytes_array(bytes_table)
+    return bytes_table
 
 #
 #
@@ -301,8 +293,54 @@ print_bytes_as_hex(bytes)
 
 
 # turn bytes into asm code
-assembly = bytes_to_asm(startaddress, bytes, opcodes)
+byte_array = analyze(startaddress, bytes, opcodes)
 
 # convert it into a readable format
-save_debug(assembly, args.outputfile)
-save_program(assembly, args.outputfile)
+save_program(byte_array, opcodes, args.outputfile)
+
+
+"""
+pseudo
+
+
+einstiegspunkt definieren
+
+alles code bis zu einem JMP oder RTS oder RTI
+alle absoluten adressen (JMP, LDA, STA) sammeln
+  code bis zum nächsten JMP oder RTS oder RTI muss wieder code sein
+
+
+bytes mit weight:
+
+"6a": {
+  "data": 0,
+  "code": 1,
+}
+
+
+
+ad 17 08 4c 18 08 10 8d 21 d0 60
+
+jump = 0
+
+ad - muss code
+  -> normal umwandeln in code
+  17 -> code
+  08 -> code
+
+ad - ist absolute, d.h. hhll muss Daten sein
+  -> $hhdd als data setzen
+
+4c - muss code (jmp)
+  -> umwandeln in code
+  18 -> code
+  08 -> code
+  $hhll (0818) muss code sein
+
+10 - bereits als data gesetzt
+
+8d -> muss code sein weil vorher beim jump definiert
+  21 d0 -> ist adresse
+
+60  - muss code sein
+"""
