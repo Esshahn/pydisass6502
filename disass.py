@@ -44,7 +44,7 @@ def load_file(filename):
     return(startaddress, bytecode)
 
 
-def write_asm_file(filename, data):
+def save_file(filename, data):
     f = open(filename, "w")
     f.write(data)
     f.close()
@@ -63,7 +63,7 @@ def number_to_hex_word(number):
 
 
 def bytes_to_addr(hh, ll):
-    """ takes two hex bytes e.g. a8, ff and returns their int address e.g. 4096"""
+    """ takes two hex bytes e.g. d0, 20 and returns their int address e.g. 53280"""
     return (int(hh, 16) << 8) + int(ll, 16)
 
 
@@ -82,38 +82,30 @@ def addr_in_program(addr, startaddr, endaddr):
     return True if addr >= startaddr and addr <= startaddr + endaddr else False
 
 
-def remove_unused_labels(asm):
+def get_abs_from_relative(byte, addr):
+    """ 
+    expects a byte and an absolute address and returns
+    the absolute address for a relative branching
+    e.g. for a BNE command
     """
-    goes through the code and checks which relative labels are
-    in use, then adds a "show_label" key to each address that
-    is a branching destination
-    """
+    int_byte = hex_to_number(byte)
 
-    # step 1: collect all relative branches in code
-    labels_used = []
-
-    for line in asm:
-        if "rel" in line:
-            labels_used.append(line["rel"])
-
-    # step 2: add key to each line to show the label if it was actually used
-    length = len(asm)
-    l = 0
-    while l < length:
-        if asm[l]["l"] in labels_used:
-            asm[l]["show_label"] = True
-        else:
-            asm[l]["show_label"] = False
-        l = l + 1
-    return (asm)
+    if int_byte > 127:
+        # substract (255 - highbyte) from current address
+        address = addr - (255 - int_byte)
+    else:
+        # add highbyte to current address
+        address = addr + int_byte + 1
+    return address
 
 
-def save_program(byte_array, opcodes, outputfile):
+def convert_to_program(byte_array, opcodes, outputfile):
     """formats the assembly code so it can be saved as a program"""
 
     program = "; converted with pydisass6502 by awsm of mayday!"
     program += "\n\n* = $" + number_to_hex_word(byte_array[0]["addr"]) + "\n\n"
-
+    label_prefix = "l"
+    spaces = 12 * " "
     end = len(byte_array)
     startaddr = byte_array[0]["addr"]
     endaddr = startaddr + end
@@ -124,9 +116,10 @@ def save_program(byte_array, opcodes, outputfile):
         byte = byte_array[i]["byte"]
 
         if byte_array[i]["dest"]:
-            label = "l" + number_to_hex_word(byte_array[i]["addr"])
+            label = label_prefix + number_to_hex_word(byte_array[i]["addr"])
 
-        if byte_array[i]["data"]:
+        # mark everything as data that is not explicity set as code
+        if not byte_array[i]["code"] or byte_array[i]["data"]:
             ins = "!byte $"+byte
 
         if byte_array[i]["code"]:
@@ -137,7 +130,15 @@ def save_program(byte_array, opcodes, outputfile):
             if length == 1:
                 i += 1
                 high_byte = byte_array[i]["byte"]
-                ins = ins.replace("hh", high_byte)
+                int_byte = hex_to_number(high_byte)
+
+                # if a relative instruction like BCC or BNE occurs
+                if "rel" in opcode:
+                    address = number_to_hex_word(
+                        get_abs_from_relative(high_byte, startaddr+i))
+                    ins = ins.replace("$hh", label_prefix + address)
+                else:
+                    ins = ins.replace("hh", number_to_hex_byte(int_byte))
 
             if length == 2:
                 i += 1
@@ -146,13 +147,17 @@ def save_program(byte_array, opcodes, outputfile):
                 high_byte = byte_array[i]["byte"]
                 ins = ins.replace("hh", high_byte)
                 ins = ins.replace("ll", low_byte)
+                addr = bytes_to_addr(high_byte, low_byte)
+                # turn absolute address into label if it is within the program code
+                if addr_in_program(addr, startaddr, endaddr):
+                    ins = ins.replace("$", label_prefix)
 
         if label:
             program += "\n" + label + "\n"
-        program += ins + "\n"
+        program += spaces + ins + "\n"
         i += 1
 
-    write_asm_file(outputfile, program)
+    save_file(outputfile, program)
 
 
 def get_instruction_length(opcode):
@@ -189,16 +194,21 @@ def generate_byte_array(startaddr, bytes):
     return bytes_table
 
 
-def check_abs_jumps():
-    pass
-
-
 def analyze(startaddr, bytes, opcodes):
 
     bytes_table = generate_byte_array(startaddr, bytes)
-    branch_mnemonics = ["4c"]
-    abs_address_mnemonics = ["ad", "8d"]
 
+    # JMP RTS
+    # used to default back to data for the following instructions
+    default_to_data_after = ["4c", "60"]
+    # JMP BNE
+    # used to identify code sections in the code
+    abs_branch_mnemonics = ["4c", "d0"]
+    # LDA STA
+    # used to identify data sections in the code
+    abs_address_mnemonics = ["ad", "8d", "bd"]
+
+    # our entrypoint is assumed to be code
     is_code = 1
     is_data = 0
 
@@ -216,20 +226,28 @@ def analyze(startaddr, bytes, opcodes):
             is_code = 1
 
         if is_code:
-            instruction_length = get_instruction_length(opcode["ins"])
-
             # set code
             bytes_table[i]["code"] = 1
 
-            if byte in branch_mnemonics:
+            instruction_length = get_instruction_length(opcode["ins"])
 
+            if byte in default_to_data_after:
                 # we have a branching/jumping instruction, so we can't be sure anymore
                 # about the following bytes being code
                 is_code = 0
 
+            if "rel" in opcode:
+                # if the instruction is relative, we have to calculate the
+                # absolute branching address to add a label later below
+                destination_address = get_abs_from_relative(
+                    bytes_table[i+1]["byte"], startaddr+i+1)
+
+            if instruction_length == 2:
+                # this is the absolute address
                 destination_address = bytes_to_addr(
                     bytes_table[i+2]["byte"], bytes_table[i+1]["byte"])
 
+            if byte in abs_branch_mnemonics:
                 if addr_in_program(destination_address, startaddr, startaddr + end):
                     # the hhll address must be code, so we mark that entry in the array
                     table_pos = destination_address - startaddr
@@ -237,9 +255,6 @@ def analyze(startaddr, bytes, opcodes):
                     bytes_table[table_pos]["dest"] = 1
 
             if byte in abs_address_mnemonics:
-                destination_address = bytes_to_addr(
-                    bytes_table[i+2]["byte"], bytes_table[i+1]["byte"])
-
                 if addr_in_program(destination_address, startaddr, startaddr + end):
                     # the hhll address must be data, so we mark that entry in the array
                     table_pos = destination_address - startaddr
@@ -296,14 +311,10 @@ print_bytes_as_hex(bytes)
 byte_array = analyze(startaddress, bytes, opcodes)
 
 # convert it into a readable format
-save_program(byte_array, opcodes, args.outputfile)
+convert_to_program(byte_array, opcodes, args.outputfile)
 
 
 """
-pseudo
-
-
-einstiegspunkt definieren
 
 alles code bis zu einem JMP oder RTS oder RTI
 alle absoluten adressen (JMP, LDA, STA) sammeln
