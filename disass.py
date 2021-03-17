@@ -198,15 +198,34 @@ def analyze(startaddr, bytes, opcodes):
 
     bytes_table = generate_byte_array(startaddr, bytes)
 
-    # JMP RTS
+    # JMP RTS RTI
     # used to default back to data for the following instructions
-    default_to_data_after = ["4c", "60"]
-    # JMP BNE
+    default_to_data_after = ["4c", "60", "40"]
+
+    # JMP JSR
     # used to identify code sections in the code
-    abs_branch_mnemonics = ["4c", "d0"]
+    abs_branch_mnemonics = ["4c", "20"]
+
     # LDA STA
     # used to identify data sections in the code
-    abs_address_mnemonics = ["ad", "8d", "bd"]
+    abs_address_mnemonics = [
+        "0d", "0e",
+        "19", "1d", "1e",
+        "2d", "2e",
+        "39", "3d", "3e",
+        "4d", "4e",
+        "59", "5d", "5e",
+        "6d", "6e",
+        "79", "7d", "7e",
+        "8c", "8d", "8e",
+        "99", "9d,"
+        "ac", "ad", "ae",
+        "b9", "bc", "bd", "be",
+        "cc", "cd", "ce",
+        "d9", "dd", "de",
+        "ec", "ee", "ed",
+        "f9", "fd", "fe"
+    ]
 
     # our entrypoint is assumed to be code
     is_code = 1
@@ -247,7 +266,7 @@ def analyze(startaddr, bytes, opcodes):
                 destination_address = bytes_to_addr(
                     bytes_table[i+2]["byte"], bytes_table[i+1]["byte"])
 
-            if byte in abs_branch_mnemonics:
+            if byte in abs_branch_mnemonics or "rel" in opcode:
                 if addr_in_program(destination_address, startaddr, startaddr + end):
                     # the hhll address must be code, so we mark that entry in the array
                     table_pos = destination_address - startaddr
@@ -312,46 +331,3 @@ byte_array = analyze(startaddress, bytes, opcodes)
 
 # convert it into a readable format
 convert_to_program(byte_array, opcodes, args.outputfile)
-
-
-"""
-
-alles code bis zu einem JMP oder RTS oder RTI
-alle absoluten adressen (JMP, LDA, STA) sammeln
-  code bis zum nächsten JMP oder RTS oder RTI muss wieder code sein
-
-
-bytes mit weight:
-
-"6a": {
-  "data": 0,
-  "code": 1,
-}
-
-
-
-ad 17 08 4c 18 08 10 8d 21 d0 60
-
-jump = 0
-
-ad - muss code
-  -> normal umwandeln in code
-  17 -> code
-  08 -> code
-
-ad - ist absolute, d.h. hhll muss Daten sein
-  -> $hhdd als data setzen
-
-4c - muss code (jmp)
-  -> umwandeln in code
-  18 -> code
-  08 -> code
-  $hhll (0818) muss code sein
-
-10 - bereits als data gesetzt
-
-8d -> muss code sein weil vorher beim jump definiert
-  21 d0 -> ist adresse
-
-60  - muss code sein
-"""
