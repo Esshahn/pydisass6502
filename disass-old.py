@@ -302,7 +302,7 @@ print_bytes_as_hex(bytes)
 
 # turn bytes into asm code
 assembly = bytes_to_asm(startaddress, bytes, opcodes)
-
+print(assembly)
 # convert it into a readable format
 save_debug(assembly, args.outputfile)
 save_program(assembly, args.outputfile)

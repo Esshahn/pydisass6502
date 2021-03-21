@@ -25,7 +25,7 @@
     "ins": "asl $hh"
   },
   "07": {
-    "ins": "hh"
+    "ins": "slo $hh"
   },
   "08": {
     "ins": "php"

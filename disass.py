@@ -218,7 +218,7 @@ def analyze(startaddr, bytes, opcodes):
         "6d", "6e",
         "79", "7d", "7e",
         "8c", "8d", "8e",
-        "99", "9d,"
+        "99", "9d,",
         "ac", "ad", "ae",
         "b9", "bc", "bd", "be",
         "cc", "cd", "ce",
