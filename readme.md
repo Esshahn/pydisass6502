@@ -1,4 +1,4 @@
-# pyDisAss6502 
+# pyDisAssembler6502 
 
 A simple 6502 machine language disassembler written in Python.
 
