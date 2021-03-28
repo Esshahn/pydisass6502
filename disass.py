@@ -79,7 +79,7 @@ def print_bytes_array(bytes_table):
 
 
 def addr_in_program(addr, startaddr, endaddr):
-    return True if addr >= startaddr and addr <= startaddr + endaddr else False
+    return True if addr >= startaddr and addr <= endaddr else False
 
 
 def get_abs_from_relative(byte, addr):
@@ -281,6 +281,7 @@ def analyze(startaddr, bytes, opcodes):
                 if addr_in_program(destination_address, startaddr, startaddr + end):
                     # the hhll address must be code, so we mark that entry in the array
                     table_pos = destination_address - startaddr
+
                     bytes_table[table_pos]["code"] = 1
                     bytes_table[table_pos]["dest"] = 1
 
