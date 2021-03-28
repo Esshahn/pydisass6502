@@ -1,0 +1,12 @@
+{
+    "overrides": [
+        {
+            "addr": "c0b2",
+            "mode": "code"
+        },
+        {
+            "addr": "c174",
+            "mode": "code"
+        }
+    ]
+}

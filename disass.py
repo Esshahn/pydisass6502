@@ -79,7 +79,7 @@ def print_bytes_array(bytes_table):
 
 
 def addr_in_program(addr, startaddr, endaddr):
-    return True if addr >= startaddr and addr <= endaddr else False
+    return True if addr >= startaddr and addr < endaddr else False
 
 
 def get_abs_from_relative(byte, addr):
@@ -205,7 +205,7 @@ def generate_byte_array(startaddr, bytes):
     return bytes_table
 
 
-def analyze(startaddr, bytes, opcodes):
+def analyze(startaddr, bytes, opcodes, overrides):
 
     bytes_table = generate_byte_array(startaddr, bytes)
 
@@ -242,12 +242,28 @@ def analyze(startaddr, bytes, opcodes):
     is_code = 1
     is_data = 0
 
-    i = 0
     end = len(bytes_table)
 
+    # add all override entry points from the json file before doing anything else
+
+    for override in overrides["overrides"]:
+        addr_int = hex_to_number(override["addr"])
+        table_pos = addr_int - startaddr
+        bytes_table[table_pos]["dest"] = 1
+
+        if override["mode"] == "code":
+            bytes_table[table_pos]["code"] = 1
+            bytes_table[table_pos]["data"] = 0
+
+        if override["mode"] == "data":
+            bytes_table[table_pos]["data"] = 1
+            bytes_table[table_pos]["code"] = 0
+
+    i = 0
     while i < end:
         byte = bytes_table[i]["byte"]
         opcode = opcodes[byte]
+        hex_address = number_to_hex_word(bytes_table[i]["addr"])
 
         if bytes_table[i]["data"]:
             is_data = 1
@@ -296,7 +312,6 @@ def analyze(startaddr, bytes, opcodes):
 
         i += 1
 
-    print_bytes_array(bytes_table)
     return bytes_table
 
 #
@@ -330,16 +345,17 @@ args = my_parser.parse_args()
 
 # load the opcodes list
 opcodes = load_json("lib/opcodes.json")
+overrides = load_json("overrides.json")
+print("\x1b[33;21m")
 
 # load prg
 startaddress, bytes = load_file(args.inputfile)
-
-print("\x1b[33;21m")
-print_bytes_as_hex(bytes)
-
+# print_bytes_as_hex(bytes)
 
 # turn bytes into asm code
-byte_array = analyze(startaddress, bytes, opcodes)
+byte_array = analyze(startaddress, bytes, opcodes, overrides)
+# print_bytes_array(byte_array)
+
 
 # convert it into a readable format
 convert_to_program(byte_array, opcodes, args.outputfile)
