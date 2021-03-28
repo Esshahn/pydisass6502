@@ -1,5 +1,5 @@
 {
-    "overrides": [
+    "entrypoints": [
         {
             "addr": "c0b2",
             "mode": "code"

@@ -15,3 +15,12 @@ Takes a binary PRG file (e.g. a Commodore 64 program) and outputs the disassembl
 
 For more information check out the article I wrote about it: 
 https://www.awsm.de/blog/pydisass/
+
+
+## ToDo
+
+* cli option for entrypoints
+* better format data sections (using "data" setting in array?)
+* external config file for multiple ass dialects
+* cleanup code formatting
+

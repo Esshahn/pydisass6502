@@ -205,7 +205,7 @@ def generate_byte_array(startaddr, bytes):
     return bytes_table
 
 
-def analyze(startaddr, bytes, opcodes, overrides):
+def analyze(startaddr, bytes, opcodes, entrypoints):
 
     bytes_table = generate_byte_array(startaddr, bytes)
 
@@ -246,16 +246,16 @@ def analyze(startaddr, bytes, opcodes, overrides):
 
     # add all override entry points from the json file before doing anything else
 
-    for override in overrides["overrides"]:
-        addr_int = hex_to_number(override["addr"])
+    for entrypoint in entrypoints["entrypoints"]:
+        addr_int = hex_to_number(entrypoint["addr"])
         table_pos = addr_int - startaddr
         bytes_table[table_pos]["dest"] = 1
 
-        if override["mode"] == "code":
+        if entrypoint["mode"] == "code":
             bytes_table[table_pos]["code"] = 1
             bytes_table[table_pos]["data"] = 0
 
-        if override["mode"] == "data":
+        if entrypoint["mode"] == "data":
             bytes_table[table_pos]["data"] = 1
             bytes_table[table_pos]["code"] = 0
 
@@ -345,7 +345,7 @@ args = my_parser.parse_args()
 
 # load the opcodes list
 opcodes = load_json("lib/opcodes.json")
-overrides = load_json("overrides.json")
+entrypoints = load_json("entrypoints.json")
 print("\x1b[33;21m")
 
 # load prg
@@ -353,7 +353,7 @@ startaddress, bytes = load_file(args.inputfile)
 # print_bytes_as_hex(bytes)
 
 # turn bytes into asm code
-byte_array = analyze(startaddress, bytes, opcodes, overrides)
+byte_array = analyze(startaddress, bytes, opcodes, entrypoints)
 # print_bytes_array(byte_array)
 
 
