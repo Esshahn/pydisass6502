@@ -105,14 +105,18 @@ def convert_to_program(byte_array, opcodes, outputfile):
     program = "; converted with pydisass6502 by awsm of mayday!"
     program += "\n\n* = $" + number_to_hex_word(byte_array[0]["addr"]) + "\n\n"
     label_prefix = "l"
-    spaces = 12 * " "
     end = len(byte_array)
     startaddr = byte_array[0]["addr"]
     endaddr = startaddr + end
+    previous_was_data = False           # used to collect data bytes in one line
 
     i = 0
     while i < end:
+        # set defaults
         label = ""
+        line_break = "\n"
+        spaces = 12 * " "
+
         byte = byte_array[i]["byte"]
 
         if byte_array[i]["dest"]:
@@ -120,9 +124,16 @@ def convert_to_program(byte_array, opcodes, outputfile):
 
         # mark everything as data that is not explicity set as code
         if not byte_array[i]["code"] or byte_array[i]["data"]:
-            ins = "!byte $"+byte
+            line_break = ""
+            spaces = ""
+            if not previous_was_data:
+                ins = "!byte $"+byte
+                previous_was_data = True
+            else:
+                ins = ", $"+byte
 
         if byte_array[i]["code"]:
+            previous_was_data = False
             opcode = opcodes[byte]
             ins = opcode["ins"]
             length = get_instruction_length(ins)
@@ -153,8 +164,8 @@ def convert_to_program(byte_array, opcodes, outputfile):
                     ins = ins.replace("$", label_prefix)
 
         if label:
-            program += "\n" + label + "\n"
-        program += spaces + ins + "\n"
+            program += "\n\n" + label + "\n"
+        program += spaces + ins + line_break
         i += 1
 
     save_file(outputfile, program)
