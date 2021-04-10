@@ -2,15 +2,9 @@
 
 #
 #   PyDisAss6502 by Ingo Hinterding 2021
-#   A Disassembler for 6502 machine code language into mnemonics
+#   A disassembler for converting 6502 machine code binaries into assembly code
 #
-#   usage:
-#   python disass.py inputfile outputfile
-#   inputfile: the binary to disassemble, e.g. game.prg
-#   outputfile: the filename for the exported source code, e.g. source.asm
-#
-#   example:
-#   python3 disass.py game.prg source.asm
+#   https://github.com/Esshahn/pydisass64
 #
 
 import json
@@ -118,6 +112,7 @@ def convert_to_program(byte_array, opcodes, mapping, outputfile):
     while i < end:
         # set defaults
         label = ""
+        comment = ""
         line_break = "\n"
         spaces = 12 * " "
 
@@ -167,9 +162,18 @@ def convert_to_program(byte_array, opcodes, mapping, outputfile):
                 if addr_in_program(addr, startaddr, endaddr):
                     ins = ins.replace("$", label_prefix)
 
+                if mapping:
+                    # add comments from mapping file
+                    for address in mapping["mapping"]:
+                        if address["addr"] == number_to_hex_word(addr):
+                            comment = address["comm"]
+
         if label:
             program += "\n\n" + label + "\n"
-        program += spaces + ins + line_break
+
+        if comment:
+            comment = (32 - len(ins)) * " " + "; " + comment
+        program += spaces + ins + comment + line_break
         i += 1
 
     save_file(outputfile, program)
