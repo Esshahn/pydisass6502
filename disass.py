@@ -1,3 +1,5 @@
+#!/usr/local/bin/python3
+
 #
 #   PyDisAss6502 by Ingo Hinterding 2021
 #   A Disassembler for 6502 machine code language into mnemonics
@@ -20,6 +22,7 @@ import sys
 def load_json(filename):
     with open(filename) as f:
         data = json.load(f)
+    print("loaded: "+filename)
     return data
 
 
@@ -79,7 +82,7 @@ def print_bytes_array(bytes_table):
 
 
 def addr_in_program(addr, startaddr, endaddr):
-    return True if addr >= startaddr and addr <= startaddr + endaddr else False
+    return True if addr >= startaddr and addr < endaddr else False
 
 
 def get_abs_from_relative(byte, addr):
@@ -105,14 +108,18 @@ def convert_to_program(byte_array, opcodes, outputfile):
     program = "; converted with pydisass6502 by awsm of mayday!"
     program += "\n\n* = $" + number_to_hex_word(byte_array[0]["addr"]) + "\n\n"
     label_prefix = "l"
-    spaces = 12 * " "
     end = len(byte_array)
     startaddr = byte_array[0]["addr"]
     endaddr = startaddr + end
+    previous_was_data = False           # used to collect data bytes in one line
 
     i = 0
     while i < end:
+        # set defaults
         label = ""
+        line_break = "\n"
+        spaces = 12 * " "
+
         byte = byte_array[i]["byte"]
 
         if byte_array[i]["dest"]:
@@ -120,9 +127,16 @@ def convert_to_program(byte_array, opcodes, outputfile):
 
         # mark everything as data that is not explicity set as code
         if not byte_array[i]["code"] or byte_array[i]["data"]:
-            ins = "!byte $"+byte
+            line_break = ""
+            spaces = ""
+            if not previous_was_data:
+                ins = "!byte $"+byte
+                previous_was_data = True
+            else:
+                ins = ", $"+byte
 
         if byte_array[i]["code"]:
+            previous_was_data = False
             opcode = opcodes[byte]
             ins = opcode["ins"]
             length = get_instruction_length(ins)
@@ -153,8 +167,8 @@ def convert_to_program(byte_array, opcodes, outputfile):
                     ins = ins.replace("$", label_prefix)
 
         if label:
-            program += "\n" + label + "\n"
-        program += spaces + ins + "\n"
+            program += "\n\n" + label + "\n"
+        program += spaces + ins + line_break
         i += 1
 
     save_file(outputfile, program)
@@ -194,7 +208,7 @@ def generate_byte_array(startaddr, bytes):
     return bytes_table
 
 
-def analyze(startaddr, bytes, opcodes):
+def analyze(startaddr, bytes, opcodes, entrypoints):
 
     bytes_table = generate_byte_array(startaddr, bytes)
 
@@ -231,12 +245,28 @@ def analyze(startaddr, bytes, opcodes):
     is_code = 1
     is_data = 0
 
-    i = 0
     end = len(bytes_table)
 
+    if entrypoints:
+        # add all override entry points from the json file before doing anything else
+        for entrypoint in entrypoints["entrypoints"]:
+            addr_int = hex_to_number(entrypoint["addr"])
+            table_pos = addr_int - startaddr
+            bytes_table[table_pos]["dest"] = 1
+
+            if entrypoint["mode"] == "code":
+                bytes_table[table_pos]["code"] = 1
+                bytes_table[table_pos]["data"] = 0
+
+            if entrypoint["mode"] == "data":
+                bytes_table[table_pos]["data"] = 1
+                bytes_table[table_pos]["code"] = 0
+
+    i = 0
     while i < end:
         byte = bytes_table[i]["byte"]
         opcode = opcodes[byte]
+        hex_address = number_to_hex_word(bytes_table[i]["addr"])
 
         if bytes_table[i]["data"]:
             is_data = 1
@@ -270,6 +300,7 @@ def analyze(startaddr, bytes, opcodes):
                 if addr_in_program(destination_address, startaddr, startaddr + end):
                     # the hhll address must be code, so we mark that entry in the array
                     table_pos = destination_address - startaddr
+
                     bytes_table[table_pos]["code"] = 1
                     bytes_table[table_pos]["dest"] = 1
 
@@ -284,7 +315,6 @@ def analyze(startaddr, bytes, opcodes):
 
         i += 1
 
-    print_bytes_array(bytes_table)
     return bytes_table
 
 #
@@ -297,14 +327,18 @@ def analyze(startaddr, bytes, opcodes):
 # Create the parser
 my_parser = argparse.ArgumentParser(
     description='disassembles a 6502 machine code binary file into assembly source.',
-    epilog='Example: disass.py game.prg game.asm')
+    epilog='Example: disass.py game.prg game.asm -e')
 
 # Add the arguments
 my_parser.add_argument('inputfile',
                        help='name of the input binary, e.g. game.prg'
                        )
 my_parser.add_argument('outputfile',
+                       default="output.asm",
                        help='name of the generated assembly file, e.g. game.asm.')
+
+my_parser.add_argument('-e', '--entrypoints', action='store_true',
+                       help="use entrypoints.json")
 
 # Execute the parse_args() method
 args = my_parser.parse_args()
@@ -318,16 +352,23 @@ args = my_parser.parse_args()
 
 # load the opcodes list
 opcodes = load_json("lib/opcodes.json")
+mapping = load_json("lib/c64-mapping.json")
+
+if args.entrypoints:
+    entrypoints = load_json("entrypoints.json")
+else:
+    entrypoints = False
+
+print("\x1b[33;21m")
 
 # load prg
 startaddress, bytes = load_file(args.inputfile)
-
-print("\x1b[33;21m")
-print_bytes_as_hex(bytes)
-
+# print_bytes_as_hex(bytes)
 
 # turn bytes into asm code
-byte_array = analyze(startaddress, bytes, opcodes)
+byte_array = analyze(startaddress, bytes, opcodes, entrypoints)
+# print_bytes_array(byte_array)
+
 
 # convert it into a readable format
 convert_to_program(byte_array, opcodes, args.outputfile)
