@@ -1,3 +1,5 @@
+#!/usr/local/bin/python3
+
 #
 #   PyDisAss6502 by Ingo Hinterding 2021
 #   A Disassembler for 6502 machine code language into mnemonics
@@ -20,6 +22,7 @@ import sys
 def load_json(filename):
     with open(filename) as f:
         data = json.load(f)
+    print("loaded: "+filename)
     return data
 
 
@@ -244,20 +247,20 @@ def analyze(startaddr, bytes, opcodes, entrypoints):
 
     end = len(bytes_table)
 
-    # add all override entry points from the json file before doing anything else
+    if entrypoints:
+        # add all override entry points from the json file before doing anything else
+        for entrypoint in entrypoints["entrypoints"]:
+            addr_int = hex_to_number(entrypoint["addr"])
+            table_pos = addr_int - startaddr
+            bytes_table[table_pos]["dest"] = 1
 
-    for entrypoint in entrypoints["entrypoints"]:
-        addr_int = hex_to_number(entrypoint["addr"])
-        table_pos = addr_int - startaddr
-        bytes_table[table_pos]["dest"] = 1
+            if entrypoint["mode"] == "code":
+                bytes_table[table_pos]["code"] = 1
+                bytes_table[table_pos]["data"] = 0
 
-        if entrypoint["mode"] == "code":
-            bytes_table[table_pos]["code"] = 1
-            bytes_table[table_pos]["data"] = 0
-
-        if entrypoint["mode"] == "data":
-            bytes_table[table_pos]["data"] = 1
-            bytes_table[table_pos]["code"] = 0
+            if entrypoint["mode"] == "data":
+                bytes_table[table_pos]["data"] = 1
+                bytes_table[table_pos]["code"] = 0
 
     i = 0
     while i < end:
@@ -324,14 +327,18 @@ def analyze(startaddr, bytes, opcodes, entrypoints):
 # Create the parser
 my_parser = argparse.ArgumentParser(
     description='disassembles a 6502 machine code binary file into assembly source.',
-    epilog='Example: disass.py game.prg game.asm')
+    epilog='Example: disass.py game.prg game.asm -e')
 
 # Add the arguments
 my_parser.add_argument('inputfile',
                        help='name of the input binary, e.g. game.prg'
                        )
 my_parser.add_argument('outputfile',
+                       default="output.asm",
                        help='name of the generated assembly file, e.g. game.asm.')
+
+my_parser.add_argument('-e', '--entrypoints', action='store_true',
+                       help="use entrypoints.json")
 
 # Execute the parse_args() method
 args = my_parser.parse_args()
@@ -345,7 +352,13 @@ args = my_parser.parse_args()
 
 # load the opcodes list
 opcodes = load_json("lib/opcodes.json")
-entrypoints = load_json("entrypoints.json")
+mapping = load_json("lib/c64-mapping.json")
+
+if args.entrypoints:
+    entrypoints = load_json("entrypoints.json")
+else:
+    entrypoints = False
+
 print("\x1b[33;21m")
 
 # load prg
