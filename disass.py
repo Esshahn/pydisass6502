@@ -2,15 +2,9 @@
 
 #
 #   PyDisAss6502 by Ingo Hinterding 2021
-#   A Disassembler for 6502 machine code language into mnemonics
+#   A disassembler for converting 6502 machine code binaries into assembly code
 #
-#   usage:
-#   python disass.py inputfile outputfile
-#   inputfile: the binary to disassemble, e.g. game.prg
-#   outputfile: the filename for the exported source code, e.g. source.asm
-#
-#   example:
-#   python3 disass.py game.prg source.asm
+#   https://github.com/Esshahn/pydisass64
 #
 
 import json
@@ -22,7 +16,6 @@ import sys
 def load_json(filename):
     with open(filename) as f:
         data = json.load(f)
-    print("loaded: "+filename)
     return data
 
 
@@ -44,6 +37,7 @@ def load_file(filename):
 
     startaddress = (bytecode[1] << 8) + bytecode[0]
     bytecode = bytecode[2:]  # remove first 2 bytes
+    print("loading: "+filename)
     return(startaddress, bytecode)
 
 
@@ -51,6 +45,7 @@ def save_file(filename, data):
     f = open(filename, "w")
     f.write(data)
     f.close()
+    print("saving: "+filename)
 
 
 def number_to_hex_byte(number):
@@ -102,7 +97,7 @@ def get_abs_from_relative(byte, addr):
     return address
 
 
-def convert_to_program(byte_array, opcodes, outputfile):
+def convert_to_program(byte_array, opcodes, mapping, outputfile):
     """formats the assembly code so it can be saved as a program"""
 
     program = "; converted with pydisass6502 by awsm of mayday!"
@@ -117,6 +112,7 @@ def convert_to_program(byte_array, opcodes, outputfile):
     while i < end:
         # set defaults
         label = ""
+        comment = ""
         line_break = "\n"
         spaces = 12 * " "
 
@@ -166,9 +162,18 @@ def convert_to_program(byte_array, opcodes, outputfile):
                 if addr_in_program(addr, startaddr, endaddr):
                     ins = ins.replace("$", label_prefix)
 
+                if mapping:
+                    # add comments from mapping file
+                    for address in mapping["mapping"]:
+                        if address["addr"] == number_to_hex_word(addr):
+                            comment = address["comm"]
+
         if label:
             program += "\n\n" + label + "\n"
-        program += spaces + ins + line_break
+
+        if comment:
+            comment = (32 - len(ins)) * " " + "; " + comment
+        program += spaces + ins + comment + line_break
         i += 1
 
     save_file(outputfile, program)
@@ -330,15 +335,18 @@ my_parser = argparse.ArgumentParser(
     epilog='Example: disass.py game.prg game.asm -e')
 
 # Add the arguments
-my_parser.add_argument('inputfile',
+my_parser.add_argument('-i', '--input',
+                       required=True,
                        help='name of the input binary, e.g. game.prg'
                        )
-my_parser.add_argument('outputfile',
-                       default="output.asm",
+my_parser.add_argument('-o', '--output',
                        help='name of the generated assembly file, e.g. game.asm.')
 
 my_parser.add_argument('-e', '--entrypoints', action='store_true',
                        help="use entrypoints.json")
+
+my_parser.add_argument('-nc', '--nocomments', action='store_true',
+                       help="do not add any comments to the output file")
 
 # Execute the parse_args() method
 args = my_parser.parse_args()
@@ -350,19 +358,34 @@ args = my_parser.parse_args()
 #
 #
 
+print("\x1b[33;21m")
+
 # load the opcodes list
 opcodes = load_json("lib/opcodes.json")
 mapping = load_json("lib/c64-mapping.json")
 
+if args.output:
+    output = args.output
+else:
+    output = str(args.input + ".asm")
+
+
 if args.entrypoints:
     entrypoints = load_json("entrypoints.json")
+    print("using entrypoints.json")
 else:
     entrypoints = False
 
-print("\x1b[33;21m")
+if args.nocomments:
+    mapping = False
+    print("omitting comments")
+else:
+    mapping = load_json("lib/c64-mapping.json")
+    print("using comments")
+
 
 # load prg
-startaddress, bytes = load_file(args.inputfile)
+startaddress, bytes = load_file(args.input)
 # print_bytes_as_hex(bytes)
 
 # turn bytes into asm code
@@ -371,4 +394,4 @@ byte_array = analyze(startaddress, bytes, opcodes, entrypoints)
 
 
 # convert it into a readable format
-convert_to_program(byte_array, opcodes, args.outputfile)
+convert_to_program(byte_array, opcodes, mapping, output)

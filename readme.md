@@ -8,20 +8,20 @@ The main disadvantage of this disassembler compared to UI based programs is the 
 ## Usage
 
 ```
-python3 disass.py inputfile outputfile [-e] [-c64]
+python3 disass.py -i filename [-o filename] [-e] [-nc]
 ```
 
-`inputfile`  
-Binary file, e.g. `game.prg` that you want to disassemble
+`-i filename` or `--input filename`  
+Binary file to load, e.g. `game.prg` that you want to disassemble
 
-`outputfile`  
-Name of the genereated assembly code, e.g. `output.asm`
+`-o outputfile` or `--output filename` (optional)
+Name of the genereated assembly code to be saved, e.g. `output.asm`. If no name is provided, the suffix `.asm` will be added to the input filename, e.g. `game.prg.asm`.
 
-`-e` (optional, no params)  
-If used, user defined entrypoints will be parsed as code sections. This is extremely helpful if you know that a specific section is clearly code and not data.
+`-e` or `--entrypoints` (optional, no params)  
+If used, user defined entrypoints will be parsed specifically as code or data sections. This is extremely helpful if you know that a specific section is clearly code and not data, see below.
 
-`c64` (optional, no params)  
-If used, the address descriptions from the file `c64-mapping.json` will be inserted as comments into the output file
+`nc` or `nocomments` (optional, no params)    
+If used, the address descriptions from the file `c64-mapping.json` will *NOT BE* be inserted as comments into the output file.
 
 
 ## JSON files
