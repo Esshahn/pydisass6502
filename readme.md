@@ -44,7 +44,7 @@ Imports the file `flt.org` located in the `source` folder, parses it with commen
 A description of all 256 opcodes that are available for the 6502 processor, including illegal opcodes. You can add more keys to the list if you know what you're doing, otherwise this one is better be left as is.
 
 `lib/c64-mapping.json`  
-A list of significant addresses for the C64, e.g. `D020` for the border color. Can be extended to your personal liking. Also more mappings for other 6502 based computers (C16, C116, Plus/4, C128, VC20) could be added as separate files. In addition, language translations could be added. Happily taking Pull Requests.
+A list of significant addresses for the C64, like `D020` for the border color. Can be extended to your personal liking. Also more mappings for other 6502 based computers (C16, C116, Plus/4, C128, VC20) could be added as separate files. In addition, language translations could be added. Happily taking Pull Requests.
 
 `entrypoints.json`  
 List of addresses that should be marked as code or data section and override any other setting. Valuable if you know that a data section is code, or to peek into data sections and check if they are code. You can and should modify this file whenevery you disassemble a file.
@@ -69,7 +69,7 @@ Open your terminal, locate the folder `disass.py` is in and type into the termin
 Open your terminal and enter `cd`. Next, enter `sudo nano .profile`. This opens a text editor. In there, add the following line:
 
 ```
-export PATH=$PATH:/Users/usernmae/pathto/folder
+export PATH=$PATH:/Users/username/pathto/folder
 ```
 
 Make sure to adapt this line to your settings by replacing the `username` with your username and the `pathto/folder` with the right path to the location of the pydisass folder.
