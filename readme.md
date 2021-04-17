@@ -20,16 +20,16 @@ Name of the genereated assembly code to be saved, e.g. `output.asm`. If no name 
 `-e filename` or `--entrypoints filename` (optional)  
 If used, user defined entrypoints will be parsed specifically as code or data sections. This is extremely helpful if you know that a specific section is clearly code and not data, see below. Check the example `entrypoints.json` for reference.
 
-`nc` or `nocomments` (optional, no params)  
+`-nc` or `--nocomments` (optional, no params)  
 If used, the address descriptions from the file `c64-mapping.json` will *NOT BE* be inserted as comments into the output file.
 
 ## Examples
 
 ```
-python3 disass.py -i flt.prg -nc
+python3 disass.py --input flt.prg -nocomments
 ```
 
-Imports the file `flt.org`, parses it without comments and writes the output assembly code as `flt.prg.asm` into the same directory.
+Imports the file `flt.prg`, parses it without comments and writes the output assembly code as `flt.prg.asm` into the same directory.
 
 
 ```
@@ -48,6 +48,36 @@ A list of significant addresses for the C64, e.g. `D020` for the border color. C
 
 `entrypoints.json`  
 List of addresses that should be marked as code or data section and override any other setting. Valuable if you know that a data section is code, or to peek into data sections and check if they are code. You can and should modify this file whenevery you disassemble a file.
+
+## Execute pydisass from anywhere
+
+You might want to make pydisass available from any location in your terminal by just typing 
+
+```
+disass -i flt.prg
+```
+
+To achieve this, follow these steps (at least on a Mac, feel free to add the correct way for Windows and Linux):
+
+1. Set the right location of your `python` installation in `disass.py`  
+Do this by changing the first line of the script, which reads `#!/usr/local/bin/python3`
+
+2. Change execution rights of the script  
+Open your terminal, locate the folder `disass.py` is in and type into the terminal `chmod +x disass.py`
+
+3. Add the location of the file to your `PATH` environment  
+Open your terminal and enter `cd`. Next, enter `sudo nano .profile`. This opens a text editor. In there, add the following line:
+
+```
+export PATH=$PATH:/Users/usernmae/pathto/folder
+```
+
+Make sure to adapt this line to your settings by replacing the `username` with your username and the `pathto/folder` with the right path to the location of the pydisass folder.
+
+4. Rename `disass.py` to `disass` (optional)  
+If you like it nice and short, you can drop the `.py` suffix as well
+
+After restarting your terminal, you should be able to execute the disassembler from anywhere.
 
 
 
