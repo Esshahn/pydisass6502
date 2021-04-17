@@ -107,6 +107,7 @@ def convert_to_program(byte_array, opcodes, mapping, outputfile):
     startaddr = byte_array[0]["addr"]
     endaddr = startaddr + end
     previous_was_data = False           # used to collect data bytes in one line
+    is_data = True
 
     i = 0
     while i < end:
@@ -121,22 +122,25 @@ def convert_to_program(byte_array, opcodes, mapping, outputfile):
         if byte_array[i]["dest"]:
             label = label_prefix + number_to_hex_word(byte_array[i]["addr"])
 
-        # mark everything as data that is not explicity set as code
+        #   DATA
+        #
+        #
         if not byte_array[i]["code"] or byte_array[i]["data"]:
-            line_break = ""
-            spaces = ""
-            if not previous_was_data:
-                ins = "!byte $"+byte
-                previous_was_data = True
-            else:
-                ins = ", $"+byte
+            is_data = True
 
+        #   CODE
+        #
+        #
         if byte_array[i]["code"]:
+            is_data = False
             previous_was_data = False
             opcode = opcodes[byte]
             ins = opcode["ins"]
             length = get_instruction_length(ins)
 
+            #   TWO BYTE INSTRUCTION
+            #   e.g. LDA #$34
+            #
             if length == 1:
                 i += 1
                 high_byte = byte_array[i]["byte"]
@@ -150,6 +154,9 @@ def convert_to_program(byte_array, opcodes, mapping, outputfile):
                 else:
                     ins = ins.replace("hh", number_to_hex_byte(int_byte))
 
+            #   THREE BYTE INSTRUCTION
+            #   e.g. STA $d020
+            #
             if length == 2:
                 i += 1
                 low_byte = byte_array[i]["byte"]
@@ -168,11 +175,24 @@ def convert_to_program(byte_array, opcodes, mapping, outputfile):
                         if address["addr"] == number_to_hex_word(addr):
                             comment = address["comm"]
 
+        #   CODE LINE CONSTRUCTION
+        #
+        #
         if label:
             program += "\n\n" + label + "\n"
 
+        if is_data:
+            line_break = ""
+            spaces = ""
+            if not previous_was_data or label:
+                ins = "\n" + "!byte $"+byte
+                previous_was_data = True
+            else:
+                ins = ", $"+byte
+
         if comment:
             comment = (32 - len(ins)) * " " + "; " + comment
+
         program += spaces + ins + comment + line_break
         i += 1
 
@@ -373,7 +393,7 @@ else:
 
 if args.entrypoints:
     entrypoints = load_json(args.entrypoints)
-    print("using entrypoints file: " + args.entrypoints)
+    print("loading entrypoints file: " + args.entrypoints)
 else:
     entrypoints = False
 
