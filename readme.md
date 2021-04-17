@@ -1,4 +1,4 @@
-# pyDisAss6502 
+# pyDisass6502 
 
 A simple 6502 machine language disassembler written in Python.
 
@@ -26,7 +26,7 @@ If used, the address descriptions from the file `c64-mapping.json` will *NOT BE*
 ## Examples
 
 ```
-python3 disass.py --input flt.prg -nocomments
+python3 disass.py --input flt.prg --nocomments
 ```
 
 Imports the file `flt.prg`, parses it without comments and writes the output assembly code as `flt.prg.asm` into the same directory.
@@ -36,7 +36,7 @@ Imports the file `flt.prg`, parses it without comments and writes the output ass
 python3 disass.py -i source/flt.prg -o code/flt.asm -e entrypoints.json 
 ```
 
-Imports the file `flt.org` located in the `source` folder, parses it with comments and using custom entrypoints defined in `entrypoints.json` and writes the output assembly code as `flt.asm` into the `code` folder.
+Imports the file `flt.org` located in the `source` folder, parses it with comments and uses custom entrypoints defined in `entrypoints.json` and writes the output assembly code as `flt.asm` into the `code` folder.
 
 ## JSON files
 
