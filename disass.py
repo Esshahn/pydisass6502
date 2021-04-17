@@ -342,7 +342,7 @@ my_parser.add_argument('-i', '--input',
 my_parser.add_argument('-o', '--output',
                        help='name of the generated assembly file, e.g. game.asm.')
 
-my_parser.add_argument('-e', '--entrypoints', action='store_true',
+my_parser.add_argument('-e', '--entrypoints',
                        help="use entrypoints.json")
 
 my_parser.add_argument('-nc', '--nocomments', action='store_true',
@@ -358,11 +358,12 @@ args = my_parser.parse_args()
 #
 #
 
+dir_path = os.path.dirname(os.path.realpath(__file__))
+
 print("\x1b[33;21m")
 
 # load the opcodes list
-opcodes = load_json("lib/opcodes.json")
-mapping = load_json("lib/c64-mapping.json")
+opcodes = load_json(dir_path + "/lib/opcodes.json")
 
 if args.output:
     output = args.output
@@ -371,8 +372,8 @@ else:
 
 
 if args.entrypoints:
-    entrypoints = load_json("entrypoints.json")
-    print("using entrypoints.json")
+    entrypoints = load_json(args.entrypoints)
+    print("using entrypoints file: " + args.entrypoints)
 else:
     entrypoints = False
 
@@ -380,7 +381,7 @@ if args.nocomments:
     mapping = False
     print("omitting comments")
 else:
-    mapping = load_json("lib/c64-mapping.json")
+    mapping = load_json(dir_path + "/lib/c64-mapping.json")
     print("using comments")
 
 

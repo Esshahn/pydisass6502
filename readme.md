@@ -17,12 +17,19 @@ Binary file to load, e.g. `game.prg` that you want to disassemble
 `-o outputfile` or `--output filename` (optional)
 Name of the genereated assembly code to be saved, e.g. `output.asm`. If no name is provided, the suffix `.asm` will be added to the input filename, e.g. `game.prg.asm`.
 
-`-e` or `--entrypoints` (optional, no params)  
-If used, user defined entrypoints will be parsed specifically as code or data sections. This is extremely helpful if you know that a specific section is clearly code and not data, see below.
+`-e filename` or `--entrypoints filename` (optional)  
+If used, user defined entrypoints will be parsed specifically as code or data sections. This is extremely helpful if you know that a specific section is clearly code and not data, see below. Check the example `entrypoints.json` for reference.
 
 `nc` or `nocomments` (optional, no params)    
 If used, the address descriptions from the file `c64-mapping.json` will *NOT BE* be inserted as comments into the output file.
 
+## Examples
+
+```
+python3 disass.py -i source/flt.prg -o code/flt.asm -e entrypoints.json 
+```
+
+Imports the file `flt.org` located in the `source` folder, parses it using custom entrypoints defined in `entrypoints.json` and writes the output assembly code as `flt.asm` into the `code` folder.
 
 ## JSON files
 
@@ -45,5 +52,4 @@ https://www.awsm.de/blog/pydisass/
 
 * external config file for multiple ass dialects
 * cleanup code formatting
-
-
+* improve data formatting
