@@ -202,13 +202,21 @@ def convert_to_program(byte_array, opcodes, mapping, outputfile, hexdump=True):
 
         i += 1
         bytes = [byte_array[j]['byte'] for j in range(i0, i)]
-        if ins is None:  # data
-            ins = "!byte " + ", ".join("$" + byte for byte in bytes)
         if hexdump:
-            s = number_to_hex_word(i0 + startaddr) + "  " + "".join(bytes)
-            comment = "{: <16s} {:s}".format(s + " ", comment)
+            comment = " ".join([
+                number_to_hex_word(i0 + startaddr),
+                "".join(bytes)
+                if ins else
+                "".join(chr(int(b, 16)) if '20' <= b < '7f' else '.' for b in bytes),
+                comment
+            ])
+        if ins is None:  # data
+            width = 72
+            ins = "!byte " + ",".join("$" + byte for byte in bytes)
+        else:
+            width = 32
 
-        program += "{: <12s}{: <32s}; {:s}".format(label + " ", ins + " ", comment).rstrip(' ;') + "\n"
+        program += "{0: <12s}{1: <{3}s}; {2:s}".format(label + " ", ins + " ", comment, width).rstrip(' ;') + "\n"
 
     save_file(outputfile, program)
 
@@ -342,14 +350,18 @@ def analyze(startaddr, bytes, opcodes, entrypoints):
                     table_pos = destination_address - startaddr
                     if table_pos not in code_done:
                         code_todo.add(table_pos)
-                    bytes_table[table_pos]["dest"] = -1 if "rel" in opcode else 1
+                    b = bytes_table[table_pos]
+                    if not b["dest"]:
+                        b["dest"] = -1 if "rel" in opcode else 1
 
             if byte in abs_address_mnemonics:
                 if addr_in_program(destination_address, startaddr, startaddr + end):
                     # the hhll address must be data, so we mark that entry in the array
                     table_pos = destination_address - startaddr
-                    bytes_table[table_pos]["data"] = 1
-                    bytes_table[table_pos]["dest"] = 1
+                    b = bytes_table[table_pos]
+                    b["data"] = 1
+                    if not b["dest"]:
+                        b["dest"] = 1
 
             i += instruction_length
 
