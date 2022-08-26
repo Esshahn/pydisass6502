@@ -1,4 +1,5 @@
 demo = """
+* = $0810
 ; lda #$00
 A9                ; entry point. This must be code
 00                ; byte is has to be part of the instruction
@@ -37,7 +38,11 @@ AD 20 D0          ; lda $d020               ; load value from border color into 
 60                ; rts
 """
 
-hexdata = bytes(map(lambda s: int(s, 16), sum([line.split(';')[0].strip().split() for line in demo.splitlines()], [])))
+start, code = demo.strip().split("\n", 1)
+hexdata = (
+    int(start[-4:], 16).to_bytes(2, byteorder='little') +
+    bytes(map(lambda s: int(s, 16), sum([line.split(';')[0].strip().split() for line in code.splitlines()], [])))
+)
 open('demo.bin', 'wb').write(hexdata)
 print(f'Wrote {len(hexdata)} bytes to demo.bin')
 print('Now disassemble with: python disass.py -i demo.bin -o demo.asm -s 0x810')

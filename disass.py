@@ -21,7 +21,7 @@ def load_json(filename):
 
 def load_file(filename, start=None):
     """
-    input: filename
+    input: filename, optional start address
     returns: startaddress (int), bytes
     """
 
@@ -36,6 +36,7 @@ def load_file(filename, start=None):
     file.close()
 
     if start is None:
+        # assume first two bytes encode start address, read and discard them
         startaddress = (bytecode[1] << 8) + bytecode[0]
         bytecode = bytecode[2:]  # remove first 2 bytes
     else:
@@ -111,10 +112,12 @@ def section_name(k):
     return ''.join(reversed(letters))
 
 
-def new_symbol(addr, symbol=None, mode="data", loc="external", count=0, comm=""):
+def new_symbol(addr, symbol=None, mode="data", loc="external", count=0, comm="", **kwargs):
+    if kwargs:
+        print(f"ignoring unexpected attributes for symbol at {addr}: {kwargs}")
     return dict(
         addr=addr,
-        symbol=symbol or ("SYM" + addr),
+        symbol=symbol,
         mode=mode,
         loc=loc,
         count=count,
@@ -123,11 +126,49 @@ def new_symbol(addr, symbol=None, mode="data", loc="external", count=0, comm="")
 
 
 def dump_stats(symbols, flt=lambda sym: True):
+    """return json-formatted records for a filtered set of symbols"""
     syms = sorted(
         [{k: v for (k, v) in s.items() if k != "comm"} for s in symbols if s['count'] > 0 and flt(s)],
         key=lambda s: (len(s["addr"]), s["addr"], s["symbol"])
     )
     return "[\n    " + ",\n    ".join(json.dumps(s) for s in syms) + "\n]"
+
+
+def add_symbols(byte_array, symtab):
+    """
+    Adds symbols to byte_array and extends symbol table {addr => symbol}
+    Generate a sequential symbol for each dest that doesn't have a user-supplied symbol.
+    Absolute dests get an auto-generated section label like  __A__, __B__, ..., __AA__, __AB__, ...
+    Relative branch dests get a label like _A_1, _A_2, ... within sections
+    """
+    if not byte_array[0]["dest"]:
+        byte_array[0]["dest"] = "START"      # make sure start is labelled
+
+    idx = -1                    # section count
+    for i, b in enumerate(byte_array):
+        if not b["dest"]:
+            continue
+        elif b["dest"] != -1:   # new section, either user or generated
+            subidx = 0          # reset subsection count
+
+            if isinstance(b["dest"], str):
+                section = b["dest"]
+                continue
+
+            idx += 1            # inc section counter
+            section = section_name(idx)
+            b["dest"] = "__" + section + "__"
+        else:   # subsection
+            subidx += 1
+            b["dest"] = "_" + section + "_" + str(subidx)
+
+        word = number_to_hex_word(b['addr'])
+        symtab[word] = new_symbol(
+            addr=word,
+            symbol=b['dest'],
+            loc="internal",
+            mode="data" if not b["code"] or b["data"] else "code"
+        )
 
 
 def convert_to_program(byte_array, opcodes, symtab, outputfile, statsfile=None, hexdump=True):
@@ -139,63 +180,34 @@ def convert_to_program(byte_array, opcodes, symtab, outputfile, statsfile=None, 
     startaddr = byte_array[0]["addr"]
     endaddr = startaddr + end
 
+    # create a cross-ref indexed by symbol to track usage stats
     symxref = {s['symbol']: dict(s, count=0) for s in symtab.values()}
-
-    # First generate a sequential symbol for each dest,
-    # with user-supplied entrypoints and absolute destinations marking sections,
-    # auto-generated sections look like  __A__, __B__, ..., __AA__, __AB__, ...
-    # with relative branch destinations labeled as _A_1, _A_2, ... within sections
-    if not byte_array[0]["dest"]:
-        byte_array[0]["dest"] = "START"
-    idx = -1
-    for i in range(end):
-        b = byte_array[i]
-        if not b["dest"]:
-            continue
-        elif b["dest"] != -1:  # new section
-            subidx = 0
-            if not isinstance(b["dest"], str):
-                idx += 1
-                section = section_name(idx)
-                b["dest"] = "__" + section + "__"
-                symxref[b["dest"]] = new_symbol(
-                    addr=number_to_hex_word(b['addr']),
-                    symbol=b['dest'],
-                    loc="internal",
-                    mode="data" if not b["code"] or b["data"] else "code"
-                )
-            else:
-                section = b["dest"]
-        else:
-            subidx += 1
-            b["dest"] = "_" + section + "_" + str(subidx)
 
     # Now generate logical lines of output
     i = 0
     while i < end:
-        # start of line
         i0 = i
-        comment = ""
-
-        bi = byte_array[i]
-
-        label = bi["dest"] or ""
+        b0 = byte_array[i]
+        pc0 = number_to_hex_word(b0['addr'])    # hex address of this line
+        label = b0["dest"] or ""
+        comment = symtab[pc0]["comm"] if pc0 in symtab else ""    # any comment for this addr?
+        is_data = False
 
         # mark everything as data that is not explicity set as code
-        if not bi["code"] or bi["data"]:
+        if not b0["code"] or b0["data"]:
+            is_data = True
             # Consume a line of data, up to 16 bytes at a time
             while True:
                 i += 1
                 if not (i < i0 + 16 and i < end):
                     break
-                bi = byte_array[i]
-                if bi["code"] or bi["dest"]:
+                b = byte_array[i]
+                if b["code"] or b["dest"]:
                     break
             i -= 1
-            ins = None   # No instruction, we'll assemble !data below
         else:
             # Build an instruction line
-            opcode = opcodes[bi["byte"]]
+            opcode = opcodes[b0["byte"]]
             ins = opcode["ins"]
             length = get_instruction_length(ins)
             target = None   # track a target we want stats for
@@ -203,7 +215,6 @@ def convert_to_program(byte_array, opcodes, symtab, outputfile, statsfile=None, 
             if length == 1:
                 i += 1
                 high_byte = byte_array[i]["byte"]
-
                 # if a relative instruction like BCC or BNE occurs
                 if "rel" in opcode:
                     # don't track stats on relative dests
@@ -211,9 +222,9 @@ def convert_to_program(byte_array, opcodes, symtab, outputfile, statsfile=None, 
                     ins = ins.replace("$hh", dest)
                 else:
                     if '#' not in ins and high_byte in symtab:
-                        comment = symtab[high_byte]["comm"]
                         target = symtab[high_byte]["symbol"]
                         ins = ins.replace("$hh", target)
+                        comment = comment or symtab[high_byte]["comm"]
                     else:
                         ins = ins.replace("hh", high_byte)
                         target = ("#" if "#" in ins else "") + "$" + high_byte
@@ -232,8 +243,8 @@ def convert_to_program(byte_array, opcodes, symtab, outputfile, statsfile=None, 
                 else:
                     hhll = high_byte + low_byte
                     if hhll in symtab:
-                        comment = symtab[hhll]["comm"]
                         target = symtab[hhll]["symbol"]
+                        comment = comment or symtab[hhll]["comm"]
                     else:
                         target = "$" + hhll
                     ins = ins.replace("$hhll", target)
@@ -245,21 +256,39 @@ def convert_to_program(byte_array, opcodes, symtab, outputfile, statsfile=None, 
 
         i += 1
         bytes = [byte_array[j]['byte'] for j in range(i0, i)]
-        if hexdump:
-            comment = " ".join([
-                number_to_hex_word(i0 + startaddr),
-                "".join(bytes)
-                if ins else
-                "".join(chr(int(b, 16)) if '20' <= b < '7f' else '.' for b in bytes),
-                "   " + comment
-            ])
-        if ins is None:  # data
-            width = 72
-            ins = "!byte " + ",".join("$" + byte for byte in bytes)
-        else:
-            width = 32
 
-        program += "{0: <12s}{1: <{3}s}; {2:s}".format(label + " ", ins + " ", comment, width).rstrip(' ;') + "\n"
+        if is_data and label:
+            if comment:
+                program += f"{label: <11s}  ; {comment}\n"
+                comment = ""
+            else:
+                program += f"{label}\n"
+
+        if hexdump:
+            if is_data:
+                chrs = "".join(chr(int(b, 16)) if '20' <= b < '7f' else '.' for b in bytes)
+                comment = f"{pc0} {chrs: <16s}"
+            else:
+                chrs = "".join(bytes)
+                comment = f"{pc0} {chrs: <6s}  {comment}"
+
+        if comment:
+            comment = "; " + comment
+
+        if is_data:  # data block
+            bytelist = ",".join("$" + byte for byte in bytes)
+            program += f"    !byte {bytelist: <66s}{comment}\n"
+        else:
+            program += f"{label: <11s} {ins: <32s}{comment}\n"
+            # check for labels pointing into instruction args
+            for j in range(i0 + 1, i):
+                b = byte_array[j]
+                if b['dest']:
+                    program += "{0} = {1} ; {2}\n".format(
+                        b['dest'],
+                        number_to_hex_word(b['addr']),
+                        "misaligned code?" if b['code'] else 'self-modifying code?'
+                    )
 
     if statsfile:
         symbols = list(symxref.values())
@@ -397,7 +426,9 @@ def analyze(startaddr, bytes, opcodes, entries):
             if instruction_length == 2:
                 # this is the absolute address
                 destination_address = bytes_to_addr(
-                    bytes_table[i + 2]["byte"], bytes_table[i + 1]["byte"])
+                    bytes_table[i + 2]["byte"],
+                    bytes_table[i + 1]["byte"]
+                )
 
             if byte in abs_branch_mnemonics or "rel" in opcode:
                 if addr_in_program(destination_address, startaddr, startaddr + end):
@@ -444,7 +475,7 @@ my_parser.add_argument('-i', '--input', required=True,
                        help='name of the input binary, e.g. game.prg')
 my_parser.add_argument('-o', '--output',
                        help='name of the generated assembly file, e.g. game.asm')
-my_parser.add_argument('-c', '--countsfile', default=None,
+my_parser.add_argument('-c', '--counts', default=None,
                        help='filename to dump usage stats on external addressses and constants, e.g. game.stats')
 my_parser.add_argument('-s', '--startaddress', type=lambda x: int(x, 0), default=None,
                        help='starting offset, default to initial two bytes')
@@ -488,14 +519,12 @@ if args.entrypoints:
 else:
     entrypoints = dict(entrypoints=[])
 
-
 # load prg
 startaddress = args.startaddress
 if startaddress is None and 'startaddress' in entrypoints:
     startaddress = hex_to_number(entrypoints['startaddress'])
 startaddress, bytes = load_file(args.input, startaddress)
 # print_bytes_as_hex(bytes)
-
 
 internal_entries = []
 for e in entrypoints["entrypoints"]:
@@ -510,10 +539,14 @@ if n > 0:
     print(f"moved {n} external entrypoints to symbol table")
 
 symtab = {m["addr"]: new_symbol(**m) for m in mapping["mapping"]}
+#TODO report duplicate addr and/or symbol names
 
 # turn bytes into asm code
 byte_array = analyze(startaddress, bytes, opcodes, internal_entries)
 # print_bytes_array(byte_array)
 
+# generate human-friendly symbols
+add_symbols(byte_array, symtab)
+
 # convert it into a readable format
-convert_to_program(byte_array, opcodes, symtab, output, args.countsfile, hexdump=not args.nohexdump)
+convert_to_program(byte_array, opcodes, symtab, output, args.counts, hexdump=not args.nohexdump)

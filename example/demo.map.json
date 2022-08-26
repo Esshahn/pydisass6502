@@ -1,0 +1,6 @@
+{
+    "entrypoints": [
+        {"addr": "0823", "symbol": "Howdy", "mode": "data", "comm": "C64's non-ascii coding of Hello world"},
+        {"addr": "082f", "symbol": "Magic", "mode": "data"}
+    ]
+}
