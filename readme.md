@@ -20,33 +20,34 @@ python3 disass.py -i filename [-o filename] [-e filename] [-c filename] [-m file
 ```
 
 `-i filename` or `--input filename`  
+
 Binary file to load, e.g. `game.prg` that you want to disassemble
 
-`-o outputfile` or `--output filename` (optional)  
+`-o outputfile` or `--output filename` (optional)\
 Name of the genereated assembly code to be saved, e.g. `output.asm`. If no name is provided, the suffix `.asm` will be added to the input filename, e.g. `game.prg.asm`.
 
-`-e filename` or `--entrypoints filename` (optional)  
+`-e filename` or `--entrypoints filename` (optional)\
 If used, user defined entrypoints will be parsed specifically as code or data sections. This is extremely helpful if you know that a specific section is clearly code and not data, see below. Check the example `entrypoints.json` for reference.
 
-`-c filename` or `--counts filename` (optional)
+`-c filename` or `--counts filename` (optional)\
 If specified, coverage statistics will be reported for code, data and hex constants in the disassembly.
 These are provided in the same format as the entrypoints file so you can cut and paste after adding meaningful names
 and/or comments.
 
-`-m filename` or `--mapping filename` (optional)
+`-m filename` or `--mapping filename` (optional)\
 If specificd, use the specified system mapping file to add annotations for external entrypoints or data elements. By default a C64 mapping from `lib/c64-mapping.json` is used.
 An Atari mapping is also available in `lib/atari-mapping.json`.
 
-`-s startaddress` or `--startaddress startaddress` (optional)
+`-s startaddress` or `--startaddress startaddress` (optional)\
 Assume the memory image is loaded at `startaddress`.
 By default, the first two bytes `llhh` of the input file are assumed to represent the start address of the image,
 and are discarded from the disassembly.  Other platforms use different conventions.
 This option can also be provided in the `--entrypoints` file.
 
-`-nc` or `--nocomments` (optional, no params)  
+`-nc` or `--nocomments` (optional, no params)\
 If used, no system mapping (e.g. `c64-mapping.json`) will be used to insert external symbols and comments.
 
-`-nx` or `--nohexdump` (optional, no params)
+`-nx` or `--nohexdump` (optional, no params)\
 By default the disassembly will include a comment on each line showing the current program counter
 (offset based on the start address) along with the bytes represented on that line.
 For code lines the raw bytes are shown, for data lines the ascii equivalent is shown since the raw bytes
