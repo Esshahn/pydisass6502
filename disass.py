@@ -394,6 +394,7 @@ def convert_to_program(byte_array, opcodes, symtab, outputfile, statsfile=None, 
         s += dump_stats(symbols, lambda s: s.symbol.startswith('_'))
         s += "\n\nKnown symbols\n\n"
         s += dump_stats(symbols, lambda s: s.symbol[0] not in "#$_")
+        s += "\n"
         save_file(statsfile, s)
 
     save_file(outputfile, program)
