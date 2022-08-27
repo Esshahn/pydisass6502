@@ -61,7 +61,7 @@
         {"addr": "d01c", "symbol": "VDELAY", "comm": "Vertical delay register"},
         {"addr": "d01d", "symbol": "GRACTL", "comm": "Used with DMACTLto latch all stick and paddle triggers"},
         {"addr": "d01e", "symbol": "HITCLR", "comm": "Clear all player/missile collision registers"},
-        {"addr": "d01f", "symbol": "CONSOL", "comm": "Check for three yellow console button press (not RESET)"},
+        {"addr": "d01f", "symbol": "CONSOL", "comm": "Check for OPTION/SELECT/START press (not RESET)"},
 
         {"addr": "d200", "symbol": "AUDF1/POT0", "comm": "Audio channel one frequency"},
         {"addr": "d201", "symbol": "AUDC1/POT1", "comm": "Audio channel one control"},

@@ -7,7 +7,7 @@ This disassembler is in a very early phase but already quite functional.
 The main disadvantage of this disassembler compared to UI based programs
 is the lack of an interactive interface to define which sections are code and which are data.
 
-However it provides coverage statistics in a convenient format for manual iteration and annotation
+It now provides coverage statistics in a convenient format for manual iteration and annotation
 of the image.  One real use case is reverse engineering the
 [Atari Eastern Front 1941 cartridge image](https://github.com/patricksurry/eastern-front-1941).
 
@@ -19,8 +19,7 @@ For more information check out the article I wrote about it: https://www.awsm.de
 python3 disass.py -i filename [-o filename] [-e filename] [-c filename] [-m filename] [-s startaddress] [-nc] [-nx]
 ```
 
-`-i filename` or `--input filename`  
-
+`-i filename` or `--input filename`\
 Binary file to load, e.g. `game.prg` that you want to disassemble
 
 `-o outputfile` or `--output filename` (optional)\
@@ -96,24 +95,25 @@ python3 ../disass.py -i demo.bin -o demo.asm -c demo.stats -e demo.map.json
 
 ## JSON files
 
-`lib/opcodes.json`  
+`lib/opcodes.json`\
 A description of all 256 opcodes that are available for the 6502 processor, including illegal opcodes. You can add more keys to the list if you know what you're doing, otherwise this one is better be left as is.
 
-`lib/c64-mapping.json`  
+`lib/c64-mapping.json`\
 A list of significant addresses for the C64, like `D020` for the border color. Can be extended to your personal liking. Also more mappings for other 6502 based computers (C16, C116, Plus/4, C128, VC20) could be added as separate files. In addition, language translations could be added. Happily taking Pull Requests.
 
-`lib/atari-mapping.json`
+`lib/atari-mapping.json`\
 A similar mapping file for the Atari platform.
 
-`entrypoints.json`  
+`entrypoints.json`\
 The optional `startaddress` gives the hex address for the offset of the input file in memory.
-The `entrypoints` key contains a list of addresses that should be marked as code or data section and override any other setting.  Valuable if you know that a data section is code, or to peek into data sections and check if they are code. You can and should modify this file whenever you disassemble a file. Each records is a symbol object containing:
+The `entrypoints` key contains a list of addresses that should be marked as code or data section and override any other setting.  Valuable if you know that a data section is code, or to peek into data sections and check if they are code. You can and should modify this file whenever you disassemble a file. Each record is a symbol object containing:
 
 - `addr`: the memory location `hhll` for this annotation
 - `symbol`: optional symbolic name for this memory location
 - `mode`: interpret this location as either `data` or `code`
-- `loc`: optionally specify either an `internal` or `external` reference (otherwise inferred by `addr`)
-- `comm`: optional comment to show at this location, and wherever this symbol is referenced
+- `loc`: optionally specify either as an `internal` or `external` reference  (otherwise inferred by `addr`)
+- `comm`: optional comment to show at this location, and wherever this symbol is referenced.
+    You can also add a comment at a code address without a symbol.
 
 ## Execute pydisass from anywhere
 
@@ -147,10 +147,7 @@ After restarting your terminal, you should be able to execute the disassembler f
 
 
 
-
-
 ## ToDo
 
-* external config file for multiple ass dialects
-* cleanup code formatting
-* improve data formatting
+* external config file for multiple assembler dialects
+* add an apple][  memory map
