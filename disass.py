@@ -144,6 +144,15 @@ def hex_to_number(hex):
     return int(hex, 16)
 
 
+def hex_to_chr(hex, enc='ascii7', nonprintable='.'):
+    """Convert a hex byte to a printable character, based on end scheme"""
+    #TODO could be system-depednent like atascii, petscii, c64 screen codes etc
+    x = hex_to_number(hex)
+    if enc == 'ascii7':
+        x &= 0x7f
+    return chr(x) if 0x20 <= x < 0x7f else '.'
+
+
 def number_to_hex_word(number):
     return ("0" + hex(number)[2:])[-4:]
 
@@ -251,8 +260,6 @@ def convert_to_program(byte_array, opcodes, symtab, outputfile, statsfile=None, 
     program = "; converted with pydisass6502 by awsm of mayday!\n\n"
     program += "* = $" + number_to_hex_word(byte_array[0].addr) + "\n"
     end = len(byte_array)
-    startaddr = byte_array[0].addr
-    endaddr = startaddr + end
 
     # create a cross-ref indexed by symbol to track usage stats
     symxref = {s.symbol: s for s in symtab.values() if s.symbol}
@@ -304,7 +311,7 @@ def convert_to_program(byte_array, opcodes, symtab, outputfile, statsfile=None, 
                 bytelist = ",".join("$" + x for x in chunk)
                 s = f"    !byte {bytelist: <64s}"
                 if hexdump:
-                    chrs = "".join(chr(int(x, 16)) if '20' <= x < '7f' else '.' for x in chunk)
+                    chrs = "".join(map(hex_to_chr, chunk))
                     s += f"  ; {pc} {chrs}"
                 program += s + "\n"
 
@@ -324,33 +331,27 @@ def convert_to_program(byte_array, opcodes, symtab, outputfile, statsfile=None, 
                 dest = byte_array[get_abs_from_relative(high_byte, i)].dest
                 ins = ins.replace("$hh", dest)
             else:
-                if '#' not in ins and high_byte in symtab:
+                imm = opcode.mode == "imm"
+                if not imm and high_byte in symtab:
                     target = symtab[high_byte].symbol
                     ins = ins.replace("$hh", target)
                     comment = comment or symtab[high_byte].comm
                 else:
                     ins = ins.replace("hh", high_byte)
-                    target = ("#" if "#" in ins else "") + "$" + high_byte
+                    target = ("#" if imm else "") + "$" + high_byte
 
         if opcode.arglen == 2:
             i += 1
             low_byte = byte_array[i].byte
             i += 1
             high_byte = byte_array[i].byte
-            addr = bytes_to_addr(high_byte, low_byte)
-            # turn absolute address into symbol if it is within the program code
-            if addr_in_program(addr, startaddr, endaddr):
-                dest = byte_array[addr - startaddr].dest
-                ins = ins.replace("$hhll", dest)
-                target = dest
+            hhll = high_byte + low_byte
+            if hhll in symtab:
+                comment = comment or symtab[hhll].comm
+                target = symtab[hhll].symbol
             else:
-                hhll = high_byte + low_byte
-                if hhll in symtab:
-                    target = symtab[hhll].symbol
-                    comment = comment or symtab[hhll].comm
-                else:
-                    target = "$" + hhll
-                ins = ins.replace("$hhll", target)
+                target = "$" + hhll
+            ins = ins.replace("$hhll", target)
 
         i += 1
         add_break = opcode.nofollow
