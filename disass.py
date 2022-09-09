@@ -194,6 +194,14 @@ def get_abs_from_relative(byte, addr):
     return address
 
 
+def find_dupes(xs):
+    seen = set()
+    dupes = set()
+    for x in xs:
+        dupes.add(x) if x in seen else seen.add(x)
+    return dupes
+
+
 def section_name(k):
     """map integer k=0, ... to Excel-style base26 A, B, ... AA, AB, ..."""
     letters = []
@@ -300,7 +308,7 @@ def convert_to_program(byte_array, opcodes, symtab, outputfile, statsfile=None, 
                     break
 
             if label or comment:
-                s = f"{label}"
+                s = f"{label}:"
                 if comment:
                     s += "  ; " + comment
                 program += s + "\n"
@@ -368,6 +376,8 @@ def convert_to_program(byte_array, opcodes, symtab, outputfile, statsfile=None, 
         if b.data:
             comment += " !! referenced as both code and data"
 
+        if label:
+            label += ':'
         s = f"{label: <11s} {ins: <32s}"
         if comment:
             s += " ; " + comment
@@ -581,8 +591,14 @@ if __name__ == '__main__':
         # also copy everything for the symbol table
         symbols.append(sym)
 
+    dupes = find_dupes([sym.addr for sym in symbols])
+    if dupes:
+        print(f"Warning: duplicate addr {', '.join(sorted(dupes))}")
+    dupes = find_dupes([sym.symbol for sym in symbols if sym.symbol])
+    if dupes:
+        print(f"Warning: duplicate symbols {', '.join(sorted(dupes))}")
+
     symtab = {sym.addr: sym for sym in symbols}
-    #TODO report duplicate addr and/or symbol names
 
     # turn bytes into asm code
     byte_array = analyze(startaddress, bytes, opcodes, internal_entries)
