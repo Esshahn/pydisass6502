@@ -45,6 +45,12 @@ class Symbol:
     comm: str = ""
     length: int = 0
 
+    def __post_init__(self):
+        try:
+            self.addr and int(self.addr, 16)
+        except ValueError:
+            raise TypeError("Symbol 'addr' must be a hexadecimal address in", asdict(self))
+
     def asdict(self):
         return asdict(self)
 
@@ -341,9 +347,11 @@ def convert_to_program(byte_array, opcodes, symtab, outputfile, statsfile=None, 
             else:
                 imm = opcode.mode == "imm"
                 if not imm and high_byte in symtab:
-                    target = symtab[high_byte].symbol
+                    sym = symtab[high_byte]
+                    target = sym.symbol
                     ins = ins.replace("$hh", target)
-                    comment = comment or symtab[high_byte].comm
+                    if not comment and sym.comm:
+                        comment = '. ' + sym.comm
                 else:
                     ins = ins.replace("hh", high_byte)
                     target = ("#" if imm else "") + "$" + high_byte
@@ -355,8 +363,10 @@ def convert_to_program(byte_array, opcodes, symtab, outputfile, statsfile=None, 
             high_byte = byte_array[i].byte
             hhll = high_byte + low_byte
             if hhll in symtab:
-                comment = comment or symtab[hhll].comm
-                target = symtab[hhll].symbol
+                sym = symtab[hhll]
+                target = sym.symbol
+                if not comment and sym.comm:
+                    comment = '. ' + sym.comm
             else:
                 target = "$" + hhll
             ins = ins.replace("$hhll", target)
@@ -366,7 +376,7 @@ def convert_to_program(byte_array, opcodes, symtab, outputfile, statsfile=None, 
 
         if target:
             if target not in symxref:
-                symxref[target] = Symbol("immediate" if target[0] == "#" else target[1:], target)
+                symxref[target] = Symbol("" if target[0] == "#" else target[1:], target)
             symxref[target].count += 1
 
         if hexdump:
@@ -396,7 +406,7 @@ def convert_to_program(byte_array, opcodes, symtab, outputfile, statsfile=None, 
     if statsfile:
         symbols = list(symxref.values())
         s = "Hex constants\n\n"
-        s += dump_stats(symbols, lambda s: s.addr == "immediate")
+        s += dump_stats(symbols, lambda s: s.addr == "")
         s += "\n\nUnknown page zero entrypoints\n\n"
         s += dump_stats(symbols, lambda s: s.symbol.startswith('$') and len(s.addr) == 2)
         s += "\n\nUnknown page one+ entrypoints\n\n"
