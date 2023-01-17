@@ -1,0 +1,33 @@
+Hex constants
+
+[
+    {"addr": "immediate", "symbol": "#$00", "mode": "data", "loc": "external", "count": 1, "length": 0},
+    {"addr": "immediate", "symbol": "#$0b", "mode": "data", "loc": "external", "count": 1, "length": 0}
+]
+
+Unknown page zero entrypoints
+
+[
+    
+]
+
+Unknown page one+ entrypoints
+
+[
+    
+]
+
+Internal entrypoints
+
+[
+    {"addr": "0823", "symbol": "__A__", "mode": "data", "loc": "internal", "count": 1, "length": 0},
+    {"addr": "082f", "symbol": "__B__", "mode": "code", "loc": "internal", "count": 1, "length": 0}
+]
+
+Known symbols
+
+[
+    {"addr": "d020", "symbol": "BRDCLR", "mode": "data", "loc": "external", "count": 2, "length": 0},
+    {"addr": "d021", "symbol": "BGCLR", "mode": "data", "loc": "external", "count": 1, "length": 0},
+    {"addr": "ffed", "symbol": "SCREEN", "mode": "data", "loc": "external", "count": 1, "length": 0}
+]
